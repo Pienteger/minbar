@@ -1,34 +1,61 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Icons } from "@/components/icons"
-import { PostList } from "@/components/feed/post-list"
+import { useState } from "react";
+import Image from "next/image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Icons } from "@/components/icons";
+import { PostList } from "@/components/feed/post-list";
+import { MosqueMembershipBadge } from "@/components/mosque/mosque-membership-badge";
+import { UserMosqueList } from "@/components/mosque/user-mosque-list";
 
 // Mock data for user profile
 const userData = {
   id: "user1",
-  name: "John Doe",
-  username: "@johndoe",
-  avatar: "/placeholder.svg?height=100&width=100",
-  coverImage: "/placeholder.svg?height=300&width=800",
+  name: "Mahmudul Hasan",
+  username: "@mahmudx",
+  avatar: "/me.jpg?height=100&width=100",
+  coverImage: "/cover.jpg",
   bio: "Photographer, traveler, and coffee enthusiast. Always looking for the next adventure!",
-  location: "New York, NY",
-  website: "johndoe.com",
+  location: "Mirpur 12, Dhaka, Bangladesh",
+  website: "mahmudx.com",
   joinedDate: "January 2020",
   stats: {
     posts: 42,
     friends: 256,
     photos: 128,
   },
-}
+  mosqueMemberships: [
+    {
+      id: "mosque1",
+      name: "Banani Central Jame Masjid",
+      type: "home",
+      status: "active",
+      role: "member",
+      profileImage: "/placeholder.svg?height=50&width=50",
+      chatId: "mosque-chat-1",
+    },
+    {
+      id: "mosque2",
+      name: "Mirpur DOHS Central Masjid",
+      type: "office",
+      status: "active",
+      role: "member",
+      profileImage: "/placeholder.svg?height=50&width=50",
+      chatId: "mosque-chat-3",
+    },
+  ],
+};
 
 export function ProfileView() {
-  const [activeTab, setActiveTab] = useState("posts")
+  const [activeTab, setActiveTab] = useState("posts");
 
   return (
     <div className="-mx-4 lg:mx-0 lg:max-w-3xl lg:mx-auto">
@@ -40,16 +67,28 @@ export function ProfileView() {
           className="object-cover mix-blend-overlay opacity-60 rounded-none lg:rounded-t-xl"
         />
         <div className="absolute -bottom-16 left-4 h-32 w-32 rounded-full border-4 border-background overflow-hidden">
-          <Image src={userData.avatar || "/placeholder.svg"} alt={userData.name} fill className="object-cover" />
+          <Image
+            src={userData.avatar || "/placeholder.svg"}
+            alt={userData.name}
+            fill
+            className="object-cover"
+          />
         </div>
         <div className="absolute top-4 right-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full bg-black/20 text-white hover:bg-black/30">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full bg-black/20 text-white hover:bg-black/30"
+              >
                 <Icons.ellipsis className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-xl border-primary/20">
+            <DropdownMenuContent
+              align="end"
+              className="rounded-xl border-primary/20"
+            >
               <DropdownMenuItem>
                 <Icons.settings className="mr-2 h-4 w-4" />
                 Settings
@@ -76,6 +115,21 @@ export function ProfileView() {
           <div>
             <h1 className="text-2xl font-bold">{userData.name}</h1>
             <p className="text-muted-foreground">{userData.username}</p>
+
+            {/* Mosque membership badges */}
+            {userData.mosqueMemberships &&
+              userData.mosqueMemberships.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {userData.mosqueMemberships.map((membership) => (
+                    <MosqueMembershipBadge
+                      key={membership.id}
+                      mosqueName={membership.name}
+                      membershipType={membership.type}
+                      role={membership.role}
+                    />
+                  ))}
+                </div>
+              )}
           </div>
           <Button variant="outline" className="rounded-full border-primary/20">
             <Icons.edit className="mr-2 h-4 w-4" />
@@ -119,7 +173,7 @@ export function ProfileView() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 rounded-xl bg-muted/50 p-1">
+          <TabsList className="grid grid-cols-4 rounded-xl bg-muted/50 p-1">
             <TabsTrigger
               value="posts"
               className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
@@ -138,6 +192,12 @@ export function ProfileView() {
             >
               Friends
             </TabsTrigger>
+            <TabsTrigger
+              value="mosques"
+              className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            >
+              My Mosques
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="posts" className="mt-4">
@@ -147,7 +207,10 @@ export function ProfileView() {
           <TabsContent value="photos" className="mt-4">
             <div className="grid grid-cols-3 gap-2 lg:grid-cols-4">
               {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="relative aspect-square rounded-lg overflow-hidden">
+                <div
+                  key={i}
+                  className="relative aspect-square rounded-lg overflow-hidden"
+                >
                   <Image
                     src={`/placeholder.svg?height=200&width=200`}
                     alt="Photo"
@@ -189,9 +252,12 @@ export function ProfileView() {
               ))}
             </div>
           </TabsContent>
+
+          <TabsContent value="mosques" className="mt-4">
+            <UserMosqueList memberships={userData.mosqueMemberships} />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
-  )
+  );
 }
-

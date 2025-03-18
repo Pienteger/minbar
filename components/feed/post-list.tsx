@@ -1,17 +1,29 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Image from "next/image"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Icons } from "@/components/icons"
-import { formatDistanceToNow } from "@/lib/date-utils"
-import { motion } from "framer-motion"
+import { useState } from "react";
+import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Icons } from "@/components/icons";
+import { formatDistanceToNow } from "@/lib/date-utils";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { MosqueMembershipBadge } from "@/components/mosque/mosque-membership-badge";
 
 // Mock data for posts
 const posts = [
@@ -21,186 +33,222 @@ const posts = [
       name: "Ahmadullah",
       username: "@ahmadullah",
       avatar: "/ahmadullah.jpg?height=40&width=40",
+      mosqueMembership: {
+        id: "mosque1",
+        name: "Gulshan Central Mosque",
+        type: "home",
+        role: "member",
+      },
     },
     content:
       "গ্রামীণ বাজারে দা-বঁটি বানিয়ে বিক্রি করে মাসে ৪০/৫০ হাজার টাকা উপার্জন করার পরিকল্পনা শুরুতে আমাদের কাছে স্বপ্নের মতো লেগেছিল।\nকিন্তু সেই অবিশ্বাস্য কাজটিই বাস্তব করে দেখাচ্ছেন জামালপুর সদরের ছোনটিয়া গ্রামের হুমায়ুন।\nকামার পেশায় দীর্ঘ ২০ বছরের অভিজ্ঞতা হুমায়ুনের মূল শক্তি। ২০ বছর যাবৎ তিনি অন্যের কারখানায় লোহার জিনিসপত্র তৈরির কাজ করেছেন। সেই সময় থেকেই তিনি স্বপ্ন দেখতেন, নিজের মতো করে একটি প্রতিষ্ঠান দাঁড় করাবেন, যেখানে তার অধীনে আরো অনেক কর্মচারী কাজ করবে।",
-    image: "/post1.jpg?height=400&width=600",
-    likes: 42,
-    comments: 8,
-    createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    images: ["/post1.jpg?height=400&width=600"],
+    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    likes: 24,
+    comments: 5,
+    shares: 2,
+    liked: false,
   },
   {
     id: "2",
     user: {
-      name: "Alex Johnson",
-      username: "alex_johnson",
-      avatar: "/placeholder.svg?height=40&width=40",
+      id: "user2",
+      name: "Arfizur Rahman",
+      username: "@arfiz",
+      avatar: "/arfiz.jpg?height=40&width=40",
+      mosqueMembership: {
+        id: "mosque2",
+        name: "Banani Central Mosque",
+        type: "office",
+        role: "khadem",
+      },
     },
     content:
-      "Working on a new project that I'm really excited about! Can't wait to share more details soon. Stay tuned!",
-    image: null,
-    likes: 24,
-    comments: 3,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+      "Beautiful sunset view from my window today. Alhamdulillah for these moments of peace and reflection. 🌅 #Sunset #Alhamdulillah",
+    images: [
+      "https://cdn.pixabay.com/photo/2023/10/21/11/46/sunset-8331285_960_720.jpg",
+      "https://cdn.pixabay.com/photo/2020/12/12/16/48/arch-5826002_1280.jpg",
+    ],
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3 hours ago
+    likes: 56,
+    comments: 12,
+    shares: 4,
+    liked: true,
   },
   {
     id: "3",
     user: {
-      name: "Sarah Parker",
-      username: "sarah_parker",
+      id: "user3",
+      name: "Ahmed Khan",
+      username: "@ahmedk",
       avatar: "/placeholder.svg?height=40&width=40",
+      mosqueMembership: {
+        id: "mosque3",
+        name: "Mirpur DOHS Central Mosque",
+        type: "roaming",
+        role: "imam",
+      },
     },
     content:
-      "Just tried that new restaurant downtown. The food was amazing! Definitely recommend checking it out if you're in the area. #FoodieLife",
-    image: "/placeholder.svg?height=400&width=600",
-    likes: 56,
-    comments: 12,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
+      "Attended an amazing lecture at the mosque today about the importance of kindness in Islam. The speaker emphasized how small acts of kindness can have a big impact. Let's all try to be a bit kinder today! #Islam #Kindness",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+    likes: 89,
+    comments: 15,
+    shares: 10,
+    liked: false,
   },
-]
+];
 
 export function PostList() {
+  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({
+    "2": true,
+  });
+
+  const handleLike = (postId: string) => {
+    setLikedPosts((prev) => ({
+      ...prev,
+      [postId]: !prev[postId],
+    }));
+  };
+
   return (
     <div className="space-y-4">
-      {posts.map((post, index) => (
-        <motion.div
-          key={post.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: index * 0.1 }}
-        >
-          <PostCard post={post} />
-        </motion.div>
+      {posts.map((post) => (
+        <Card key={post.id} className="overflow-hidden border-primary/20">
+          <CardHeader className="p-4 pb-0">
+            <div className="flex justify-between items-start">
+              <div className="flex items-start space-x-3">
+                <Avatar>
+                  <AvatarImage src={post.user.avatar} alt={post.user.name} />
+                  <AvatarFallback>{post.user.name[0]}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <div className="flex items-center">
+                    <Link
+                      href={`/profile/${post.user.username}`}
+                      className="font-medium hover:underline"
+                    >
+                      {post.user.name}
+                    </Link>
+                    <span className="text-muted-foreground text-sm ml-1.5">
+                      {post.user.username}
+                    </span>
+                  </div>
+
+                  {/* Mosque membership badge */}
+                  {post.user.mosqueMembership && (
+                    <div className="mt-1">
+                      <MosqueMembershipBadge
+                        mosqueName={post.user.mosqueMembership.name}
+                        membershipType={post.user.mosqueMembership.type}
+                        role={post.user.mosqueMembership.role}
+                        size="sm"
+                      />
+                    </div>
+                  )}
+
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {formatDistanceToNow(post.timestamp)}
+                  </div>
+                </div>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full h-8 w-8"
+                  >
+                    <Icons.ellipsis className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="rounded-xl border-primary/20"
+                >
+                  <DropdownMenuItem>
+                    <Icons.bookmark className="mr-2 h-4 w-4" />
+                    Save Post
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Icons.flag className="mr-2 h-4 w-4" />
+                    Report
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Icons.eyeOff className="mr-2 h-4 w-4" />
+                    Hide
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <p className="whitespace-pre-line">{post.content}</p>
+            {post.images && post.images.length > 0 && (
+              <div
+                className={`mt-3 grid gap-2 ${
+                  post.images.length > 1 ? "grid-cols-2" : "grid-cols-1"
+                }`}
+              >
+                {post.images.map((image, index) => (
+                  <div
+                    key={index}
+                    className="relative rounded-xl overflow-hidden aspect-video bg-muted"
+                  >
+                    <Image
+                      src={image || "/placeholder.svg"}
+                      alt={`Post image ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="p-4 pt-0 flex justify-between">
+            <div className="flex space-x-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 px-2.5 text-muted-foreground hover:text-foreground"
+                onClick={() => handleLike(post.id)}
+              >
+                {likedPosts[post.id] ? (
+                  <Icons.heart className="mr-1.5 h-4 w-4 text-red-500" />
+                ) : (
+                  <Icons.heart className="mr-1.5 h-4 w-4" />
+                )}
+                {post.likes + (likedPosts[post.id] ? 1 : 0)}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 px-2.5 text-muted-foreground hover:text-foreground"
+              >
+                <Icons.messageCircle className="mr-1.5 h-4 w-4" />
+                {post.comments}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 px-2.5 text-muted-foreground hover:text-foreground"
+              >
+                <Icons.repeat className="mr-1.5 h-4 w-4" />
+                {post.shares}
+              </Button>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 px-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <Icons.share className="mr-1.5 h-4 w-4" />
+              Share
+            </Button>
+          </CardFooter>
+        </Card>
       ))}
     </div>
-  )
+  );
 }
-
-function PostCard({ post }: { post: (typeof posts)[0] }) {
-  const [liked, setLiked] = useState(false)
-  const [likeCount, setLikeCount] = useState(post.likes)
-  const [comment, setComment] = useState("")
-
-  const handleLike = () => {
-    if (liked) {
-      setLikeCount(likeCount - 1)
-    } else {
-      setLikeCount(likeCount + 1)
-    }
-    setLiked(!liked)
-  }
-
-  const handleComment = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (comment.trim()) {
-      // In a real app, this would submit the comment to the server
-      setComment("")
-    }
-  }
-
-  return (
-    <Card className="overflow-hidden rounded-xl border-primary/20 hover:shadow-md hover:shadow-primary/5 transition-all duration-300 max-w-3xl mx-auto">
-      <CardHeader className="p-4 pb-0">
-        <div className="flex justify-between items-start">
-          <div className="flex items-center space-x-3">
-            <Avatar>
-              <AvatarImage src={post.user.avatar} alt={post.user.name} />
-              <AvatarFallback>{post.user.name[0]}</AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="font-semibold">{post.user.name}</div>
-              <div className="text-xs text-muted-foreground">{formatDistanceToNow(post.createdAt)}</div>
-            </div>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Icons.ellipsis className="h-4 w-4" />
-                <span className="sr-only">More options</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-xl border-primary/20">
-              <DropdownMenuItem>
-                <Icons.bookmark className="mr-2 h-4 w-4" />
-                Save post
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Icons.user className="mr-2 h-4 w-4" />
-                View profile
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
-                <Icons.trash className="mr-2 h-4 w-4" />
-                Report post
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4">
-        <p className="whitespace-pre-wrap">{post.content}</p>
-        {post.image && (
-          <div className="mt-3 relative rounded-lg overflow-hidden">
-            <div className="aspect-[4/3] relative">
-              <Image
-                src={post.image || "/placeholder.svg"}
-                alt="Post image"
-                fill
-                className="object-cover hover:scale-105 transition-transform duration-500"
-              />
-            </div>
-          </div>
-        )}
-      </CardContent>
-      <CardFooter className="p-4 pt-0 flex flex-col">
-        <div className="flex items-center justify-between w-full text-muted-foreground text-sm">
-          <div>{likeCount} likes</div>
-          <div>{post.comments} comments</div>
-        </div>
-        <div className="flex justify-between w-full border-y my-3 py-1">
-          <Button variant="ghost" size="sm" className={`flex-1 ${liked ? "text-primary" : ""}`} onClick={handleLike}>
-            {liked ? (
-              <motion.div initial={{ scale: 1 }} animate={{ scale: [1, 1.5, 1] }} transition={{ duration: 0.3 }}>
-                <Icons.heart className="mr-2 h-4 w-4 fill-primary text-primary" />
-              </motion.div>
-            ) : (
-              <Icons.heart className="mr-2 h-4 w-4" />
-            )}
-            Like
-          </Button>
-          <Button variant="ghost" size="sm" className="flex-1">
-            <Icons.chat className="mr-2 h-4 w-4" />
-            Comment
-          </Button>
-          <Button variant="ghost" size="sm" className="flex-1">
-            <Icons.send className="mr-2 h-4 w-4" />
-            Share
-          </Button>
-        </div>
-        <form onSubmit={handleComment} className="flex w-full space-x-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User" />
-            <AvatarFallback>U</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 flex space-x-2">
-            <Input
-              placeholder="Write a comment..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              className="flex-1 rounded-full border-primary/20"
-            />
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!comment.trim()}
-              className="rounded-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600"
-            >
-              <Icons.send className="h-4 w-4" />
-              <span className="sr-only">Send comment</span>
-            </Button>
-          </div>
-        </form>
-      </CardFooter>
-    </Card>
-  )
-}
-

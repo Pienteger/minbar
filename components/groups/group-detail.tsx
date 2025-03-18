@@ -28,7 +28,7 @@ const groupData = {
     {
       id: "post1",
       user: {
-        name: "Emma Wilson",
+        name: "Arfizur Rahman",
         avatar: "/placeholder.svg?height=40&width=40",
       },
       content:
@@ -41,7 +41,7 @@ const groupData = {
     {
       id: "post2",
       user: {
-        name: "Alex Johnson",
+        name: "Kawsarul Shuvo",
         avatar: "/placeholder.svg?height=40&width=40",
       },
       content: "Here's a shot from yesterday's sunset. Edited in Lightroom with my custom preset.",
@@ -54,25 +54,25 @@ const groupData = {
   members_list: [
     {
       id: "user1",
-      name: "Emma Wilson",
+      name: "Mehdi Hasan",
       avatar: "/placeholder.svg?height=40&width=40",
       role: "Admin",
     },
     {
       id: "user2",
-      name: "Alex Johnson",
+      name: "Sabbir Ahmed",
       avatar: "/placeholder.svg?height=40&width=40",
       role: "Member",
     },
     {
       id: "user3",
-      name: "Sarah Parker",
+      name: "Sujon Parvej",
       avatar: "/placeholder.svg?height=40&width=40",
       role: "Member",
     },
     {
       id: "user4",
-      name: "Mike Brown",
+      name: "Shariful Islam",
       avatar: "/placeholder.svg?height=40&width=40",
       role: "Member",
     },

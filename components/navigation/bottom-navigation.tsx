@@ -17,9 +17,9 @@ const navItems = [
     icon: Icons.chat,
   },
   {
-    name: "Groups",
-    href: "/groups",
-    icon: Icons.users,
+    name: "Mosques",
+    href: "/mosques",
+    icon: Icons.mosque,
   },
   {
     name: "Notifications",

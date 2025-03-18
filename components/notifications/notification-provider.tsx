@@ -9,8 +9,8 @@ const mockNotifications = [
     id: "n1",
     type: "like",
     user: {
-      name: "Emma Wilson",
-      avatar: "/placeholder.svg?height=40&width=40",
+      name: "Forhad Hasan Anik",
+      avatar: "/forhad.jpg?height=40&width=40",
     },
     content: "liked your post",
     timestamp: new Date(),
@@ -19,8 +19,8 @@ const mockNotifications = [
     id: "n2",
     type: "comment",
     user: {
-      name: "Alex Johnson",
-      avatar: "/placeholder.svg?height=40&width=40",
+      name: "Zakir Hossen",
+      avatar: "/zakir.jpg?height=40&width=40",
     },
     content: "commented on your photo",
     timestamp: new Date(),
@@ -29,8 +29,8 @@ const mockNotifications = [
     id: "n3",
     type: "friend_request",
     user: {
-      name: "Sarah Parker",
-      avatar: "/placeholder.svg?height=40&width=40",
+      name: "Sarwar Zoha",
+      avatar: "/zoha.jpg?height=40&width=40",
     },
     content: "sent you a friend request",
     timestamp: new Date(),

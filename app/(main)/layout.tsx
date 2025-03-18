@@ -26,9 +26,9 @@ export default function MainLayout({
         {/* Mobile Bottom Navigation */}
         <div className="lg:hidden">
           <BottomNavigation />
-          <div className="fixed bottom-20 right-4">
+          {/* <div className="fixed bottom-20 right-4">
             <ThemeToggle />
-          </div>
+          </div> */}
         </div>
       </div>
     </NotificationProvider>

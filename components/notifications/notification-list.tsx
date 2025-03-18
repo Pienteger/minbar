@@ -14,8 +14,8 @@ const notifications = [
     id: "1",
     type: "friend_request",
     user: {
-      name: "Emma Wilson",
-      avatar: "/placeholder.svg?height=40&width=40",
+      name: "Bashar Ovi",
+      avatar: "/ovi.jpg?height=40&width=40",
     },
     content: "sent you a friend request",
     timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
@@ -26,8 +26,8 @@ const notifications = [
     id: "2",
     type: "like",
     user: {
-      name: "Alex Johnson",
-      avatar: "/placeholder.svg?height=40&width=40",
+      name: "Yusuf Hasan",
+      avatar: "/polok.jpg?height=40&width=40",
     },
     content: "liked your post",
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
@@ -38,8 +38,8 @@ const notifications = [
     id: "3",
     type: "comment",
     user: {
-      name: "Sarah Parker",
-      avatar: "/placeholder.svg?height=40&width=40",
+      name: "Zahid Sarmon",
+      avatar: "/jahid.jpg?height=40&width=40",
     },
     content: "commented on your photo",
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
@@ -50,8 +50,8 @@ const notifications = [
     id: "4",
     type: "mention",
     user: {
-      name: "Mike Brown",
-      avatar: "/placeholder.svg?height=40&width=40",
+      name: "Yunus Sarkar",
+      avatar: "/yunus.jpg?height=40&width=40",
     },
     content: "mentioned you in a comment",
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
@@ -62,8 +62,8 @@ const notifications = [
     id: "5",
     type: "group_invite",
     user: {
-      name: "Jessica Lee",
-      avatar: "/placeholder.svg?height=40&width=40",
+      name: "Arfizur Rahman",
+      avatar: "/arfiz.jpg?height=40&width=40",
     },
     content: "invited you to join Photography Enthusiasts group",
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago

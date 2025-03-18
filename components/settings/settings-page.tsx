@@ -20,14 +20,14 @@ export function SettingsPage() {
 
   // Mock user data
   const userData = {
-    name: "John Doe",
-    username: "johndoe",
-    email: "john.doe@example.com",
+    name: "Mahmudul Hasan",
+    username: "mahmudx",
+    email: "mahmudx@example.com",
     bio: "Photographer, traveler, and coffee enthusiast. Always looking for the next adventure!",
-    location: "New York, NY",
-    website: "johndoe.com",
-    phone: "+1 (555) 123-4567",
-    avatar: "/placeholder.svg?height=100&width=100",
+    location: "Mirpur 12, Dhaka, Bangladesh",
+    website: "mahmudx.com",
+    phone: "+880 123 456 7890",
+    avatar: "/me.jpg?height=100&width=100",
   }
 
   const handleSaveProfile = () => {

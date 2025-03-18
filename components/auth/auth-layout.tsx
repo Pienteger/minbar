@@ -13,7 +13,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       <Card className="w-full max-w-md">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center space-y-6">
-            <Logo className="h-10 w-10" />
+            <Logo className="h-10" />
             {children}
           </div>
         </CardContent>

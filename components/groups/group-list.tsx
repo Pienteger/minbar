@@ -13,7 +13,7 @@ const groups = [
   {
     id: "1",
     name: "Photography Enthusiasts",
-    image: "/placeholder.svg?height=80&width=80",
+    image: "https://cdn.pixabay.com/photo/2014/11/03/10/44/camera-514992_960_720.jpg",
     members: 128,
     lastActivity: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
     unreadCount: 5,
@@ -22,7 +22,7 @@ const groups = [
   {
     id: "2",
     name: "Foodies Club",
-    image: "/placeholder.svg?height=80&width=80",
+    image: "https://cdn.pixabay.com/photo/2017/04/05/01/15/food-2203717_960_720.jpg",
     members: 256,
     lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
     unreadCount: 0,
@@ -31,7 +31,7 @@ const groups = [
   {
     id: "3",
     name: "Tech Talks",
-    image: "/placeholder.svg?height=80&width=80",
+    image: "https://cdn.pixabay.com/photo/2019/07/14/16/27/pen-4337521_960_720.jpg",
     members: 512,
     lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
     unreadCount: 12,
@@ -40,7 +40,7 @@ const groups = [
   {
     id: "4",
     name: "Fitness Motivation",
-    image: "/placeholder.svg?height=80&width=80",
+    image: "https://cdn.pixabay.com/photo/2015/09/06/20/29/sport-927759_960_720.jpg",
     members: 189,
     lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
     unreadCount: 0,
@@ -49,7 +49,7 @@ const groups = [
   {
     id: "5",
     name: "Book Club",
-    image: "/placeholder.svg?height=80&width=80",
+    image: "https://cdn.pixabay.com/photo/2015/11/19/21/14/glasses-1052023_1280.jpg",
     members: 76,
     lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
     unreadCount: 0,

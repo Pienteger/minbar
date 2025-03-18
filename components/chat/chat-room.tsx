@@ -1,88 +1,38 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useRef, useEffect } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Icons } from "@/components/icons"
-import { formatTime } from "@/lib/date-utils"
-import { Card } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import Image from "next/image"
-import { useMediaQuery } from "@/hooks/use-media-query"
-import { cn } from "@/lib/utils"
+import { useState, useRef, useEffect } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Icons } from "@/components/icons";
+import { formatTime } from "@/lib/date-utils";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import Image from "next/image";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
+import { useSecureChat } from "@/hooks/use-secure-chat";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, Lock } from "lucide-react";
+import { MessageReactions } from "@/components/chat/message-reactions";
+import { MessageActions } from "@/components/chat/message-actions";
+import { StickerPicker } from "@/components/chat/sticker-picker";
+import type { ChatMessage } from "@/lib/signalr-client";
 
 // Mock data for a chat
 const chatData = {
   id: "1",
   user: {
     id: "user1",
-    name: "Emma Wilson",
+    name: "Zahid Sarmon",
     avatar: "/placeholder.svg?height=40&width=40",
     online: true,
   },
-  messages: [
-    {
-      id: "msg1",
-      text: "Hey there! How's your day going?",
-      timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-      sender: "user1",
-      isRead: true,
-    },
-    {
-      id: "msg2",
-      text: "Hi Emma! It's going well, thanks for asking. Just finished a big project at work.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 55), // 55 minutes ago
-      sender: "currentUser",
-      isRead: true,
-    },
-    {
-      id: "msg3",
-      text: "That's awesome! Congrats on finishing the project. Was it the one you were telling me about last week?",
-      timestamp: new Date(Date.now() - 1000 * 60 * 50), // 50 minutes ago
-      sender: "user1",
-      isRead: true,
-    },
-    {
-      id: "msg4",
-      text: "Yes, exactly! It was quite challenging but I'm happy with the results.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 45), // 45 minutes ago
-      sender: "currentUser",
-      isRead: true,
-    },
-    {
-      id: "msg5",
-      text: "Do you want to grab coffee this weekend to celebrate?",
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-      sender: "user1",
-      isRead: true,
-    },
-    {
-      id: "msg6",
-      text: "That sounds great! How about Saturday morning at that new café downtown?",
-      timestamp: new Date(Date.now() - 1000 * 60 * 25), // 25 minutes ago
-      sender: "currentUser",
-      isRead: true,
-    },
-    {
-      id: "msg7",
-      text: "Perfect! Let's meet at 10am. I've heard they have amazing pastries too.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 20), // 20 minutes ago
-      sender: "user1",
-      isRead: true,
-    },
-    {
-      id: "msg8",
-      text: "Looking forward to it! 😊",
-      timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
-      sender: "currentUser",
-      isRead: true,
-    },
-  ],
   sharedMedia: [
     {
       id: "media1",
@@ -123,85 +73,284 @@ const chatData = {
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 12), // 12 days ago
     },
   ],
-}
+};
 
 interface ChatRoomProps {
-  chatId: string
+  chatId: string;
 }
 
 export function ChatRoom({ chatId }: ChatRoomProps) {
-  const [message, setMessage] = useState("")
-  const [messages, setMessages] = useState(chatData.messages)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("info")
-  const [nickName, setNickName] = useState("")
-  const [chatColor, setChatColor] = useState("pink-to-orange")
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const isDesktop = useMediaQuery("(min-width: 1024px)")
+  const [message, setMessage] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("info");
+  const [nickName, setNickName] = useState("");
+  const [chatColor, setChatColor] = useState("pink-to-orange");
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
+  const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(
+    null
+  );
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
+
+  // Current user ID (in a real app, this would come from authentication)
+  const currentUserId = "currentUser";
+
+  // Use the secure chat hook
+  const {
+    messages,
+    sendMessage,
+    editMessage,
+    deleteMessage,
+    reactToMessage,
+    isConnected,
+    isLoading,
+    error,
+  } = useSecureChat({
+    userId: currentUserId,
+    recipientId: chatData.user.id,
+  });
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    scrollToBottom();
+  }, [messages]);
 
   // Auto-open sidebar on desktop
   useEffect(() => {
     if (isDesktop) {
-      setIsSidebarOpen(true)
+      setIsSidebarOpen(true);
     } else {
-      setIsSidebarOpen(false)
+      setIsSidebarOpen(false);
     }
-  }, [isDesktop])
+  }, [isDesktop]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    if (!message.trim()) return
-
-    const newMessage = {
-      id: `msg${messages.length + 1}`,
-      text: message,
-      timestamp: new Date(),
-      sender: "currentUser",
-      isRead: false,
+    if (editingMessage) {
+      // Handle editing message
+      const success = await editMessage(editingMessage.id, message);
+      if (success) {
+        setMessage("");
+        setEditingMessage(null);
+      }
+      return;
     }
 
-    setMessages([...messages, newMessage])
-    setMessage("")
-  }
+    if (!message.trim() && !replyTo) return;
+
+    // Send the message via SignalR with end-to-end encryption
+    const options = replyTo
+      ? {
+          replyToId: replyTo.id,
+          replyToContent: replyTo.content,
+          type: "text",
+        }
+      : undefined;
+
+    const success = await sendMessage(message, options);
+
+    if (success) {
+      setMessage("");
+      setReplyTo(null);
+    }
+  };
+
+  const handleSendSticker = async (stickerUrl: string) => {
+    const options = {
+      type: "sticker",
+      stickerUrl,
+      ...(replyTo
+        ? {
+            replyToId: replyTo.id,
+            replyToContent: replyTo.content,
+          }
+        : {}),
+    };
+
+    const success = await sendMessage("", options);
+
+    if (success) {
+      setReplyTo(null);
+    }
+  };
+
+  const handleReplyToMessage = (msg: ChatMessage) => {
+    setReplyTo(msg);
+    setEditingMessage(null);
+  };
+
+  const handleEditMessage = (msg: ChatMessage) => {
+    setEditingMessage(msg);
+    setMessage(msg.content);
+    setReplyTo(null);
+  };
+
+  const handleDeleteMessage = async (
+    messageId: string,
+    deleteFor: "self" | "everyone"
+  ) => {
+    await deleteMessage(messageId, deleteFor);
+  };
+
+  const handleReaction = async (
+    messageId: string,
+    emoji: string,
+    action: "add" | "remove"
+  ) => {
+    await reactToMessage(messageId, emoji, action);
+  };
 
   const colorOptions = [
-    { id: "pink-to-orange", name: "Sunset", from: "from-pink-500", to: "to-orange-500" },
-    { id: "blue-to-purple", name: "Ocean", from: "from-blue-500", to: "to-purple-500" },
-    { id: "green-to-teal", name: "Forest", from: "from-green-500", to: "to-teal-500" },
-    { id: "yellow-to-red", name: "Autumn", from: "from-yellow-500", to: "to-red-500" },
-    { id: "indigo-to-cyan", name: "Sky", from: "from-indigo-500", to: "to-cyan-500" },
-  ]
+    {
+      id: "pink-to-orange",
+      name: "Sunset",
+      from: "from-pink-500",
+      to: "to-orange-500",
+    },
+    {
+      id: "blue-to-purple",
+      name: "Ocean",
+      from: "from-blue-500",
+      to: "to-purple-500",
+    },
+    {
+      id: "green-to-teal",
+      name: "Forest",
+      from: "from-green-500",
+      to: "to-teal-500",
+    },
+    {
+      id: "yellow-to-red",
+      name: "Autumn",
+      from: "from-yellow-500",
+      to: "to-red-500",
+    },
+    {
+      id: "indigo-to-cyan",
+      name: "Sky",
+      from: "from-indigo-500",
+      to: "to-cyan-500",
+    },
+  ];
 
   const getGradientClasses = (colorId: string) => {
-    const color = colorOptions.find((c) => c.id === colorId)
-    return color ? `${color.from} ${color.to}` : "from-pink-500 to-orange-500"
-  }
+    const color = colorOptions.find((c) => c.id === colorId);
+    return color ? `${color.from} ${color.to}` : "from-pink-500 to-orange-500";
+  };
+
+  // Render a message bubble
+  const renderMessage = (msg: ChatMessage) => {
+    if (
+      msg.deletedFor === "everyone" ||
+      (msg.deletedFor === "self" && msg.senderId !== currentUserId)
+    ) {
+      return (
+        <div className="px-4 py-2 rounded-2xl bg-muted/30 italic text-muted-foreground text-sm">
+          This message was deleted
+        </div>
+      );
+    }
+
+    if (msg.type === "sticker" && msg.stickerUrl) {
+      return (
+        <div className="p-1">
+          <div className="relative w-32 h-32">
+            <Image
+              src={msg.stickerUrl || "/placeholder.svg"}
+              alt="Sticker"
+              fill
+              className="object-contain"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    const isCurrentUser = msg.senderId === currentUserId;
+
+    return (
+      <div
+        className={`px-4 py-2 rounded-2xl ${
+          isCurrentUser
+            ? `bg-gradient-to-r ${getGradientClasses(chatColor)} text-white`
+            : "bg-background/80 backdrop-blur-sm border border-primary/10"
+        }`}
+      >
+        {/* Reply preview if this is a reply */}
+        {msg.replyToId && msg.replyToContent && (
+          <div
+            className={`text-xs mb-1 pb-1 border-b ${
+              isCurrentUser
+                ? "border-white/20 text-white/70"
+                : "border-primary/10 text-muted-foreground"
+            }`}
+          >
+            <div className="flex items-center">
+              <Icons.messageCircle className="h-3 w-3 mr-1" />
+              <span className="font-medium">
+                Replying to{" "}
+                {msg.replyToId.startsWith("currentUser")
+                  ? "yourself"
+                  : chatData.user.name}
+              </span>
+            </div>
+            <p className="truncate">{msg.replyToContent}</p>
+          </div>
+        )}
+
+        <p>{msg.content}</p>
+        <div
+          className={`text-xs mt-1 flex items-center justify-between ${
+            isCurrentUser ? "text-white/70" : "text-muted-foreground"
+          }`}
+        >
+          <div className="flex items-center">
+            {formatTime(new Date(msg.timestamp))}
+            {isCurrentUser && <Lock className="h-3 w-3 ml-1" />}
+            {msg.isEdited && <span className="ml-1">(edited)</span>}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-[calc(100vh-8rem)] lg:h-[calc(100vh-8rem)]">
       {/* Main Chat Area */}
       <div
-        className={cn("flex flex-col flex-1 transition-all duration-300", isSidebarOpen && isDesktop ? "mr-80" : "")}
+        className={cn(
+          "flex flex-col flex-1 transition-all duration-300",
+          isSidebarOpen && isDesktop ? "mr-80" : ""
+        )}
       >
         {/* Chat Header */}
         <Card className="border-b rounded-none lg:rounded-t-xl border-primary/10 p-4 flex items-center justify-between bg-background/80 backdrop-blur-md">
           <div className="flex items-center space-x-3">
             <Avatar>
-              <AvatarImage src={chatData.user.avatar} alt={chatData.user.name} />
+              <AvatarImage
+                src={chatData.user.avatar}
+                alt={chatData.user.name}
+              />
               <AvatarFallback>{chatData.user.name[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <div className="font-medium">{nickName || chatData.user.name}</div>
-              <div className="text-xs text-muted-foreground">{chatData.user.online ? "Online" : "Offline"}</div>
+              <div className="font-medium flex items-center">
+                {nickName || chatData.user.name}
+                <Badge
+                  variant="outline"
+                  className="ml-2 bg-green-500/10 text-green-500 border-green-500/20 flex items-center"
+                >
+                  <Lock className="h-3 w-3 mr-1" />
+                  <span className="text-xs">End-to-End Encrypted</span>
+                </Badge>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {chatData.user.online ? "Online" : "Offline"}
+              </div>
             </div>
           </div>
           <div className="flex space-x-1">
@@ -227,63 +376,199 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-br from-pink-50/30 to-orange-50/30 dark:from-pink-950/10 dark:to-orange-950/10">
+          {isLoading && (
+            <div className="flex justify-center items-center h-full">
+              <Icons.spinner className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Establishing secure connection...</span>
+            </div>
+          )}
+
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {!isLoading && isConnected && (
+            <div className="bg-green-500/10 text-green-600 dark:text-green-400 p-3 rounded-lg text-center text-sm mb-4">
+              <Lock className="h-4 w-4 inline mr-1" />
+              Secure connection established. Your messages are end-to-end
+              encrypted.
+            </div>
+          )}
+
           {messages.map((msg) => {
-            const isCurrentUser = msg.sender === "currentUser"
+            const isCurrentUser = msg.senderId === currentUserId;
 
             return (
-              <div key={msg.id} className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}>
-                <div className="flex items-end space-x-2 max-w-[80%] lg:max-w-[60%]">
+              <div
+                key={msg.id}
+                className={`flex ${
+                  isCurrentUser ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div className="flex items-end space-x-2 max-w-[80%] lg:max-w-[60%] group">
                   {!isCurrentUser && (
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={chatData.user.avatar} alt={chatData.user.name} />
+                      <AvatarImage
+                        src={chatData.user.avatar}
+                        alt={chatData.user.name}
+                      />
                       <AvatarFallback>{chatData.user.name[0]}</AvatarFallback>
                     </Avatar>
                   )}
-                  <div
-                    className={`px-4 py-2 rounded-2xl ${
-                      isCurrentUser
-                        ? `bg-gradient-to-r ${getGradientClasses(chatColor)} text-white`
-                        : "bg-background/80 backdrop-blur-sm border border-primary/10"
-                    }`}
-                  >
-                    <p>{msg.text}</p>
-                    <div className={`text-xs mt-1 ${isCurrentUser ? "text-white/70" : "text-muted-foreground"}`}>
-                      {formatTime(msg.timestamp)}
-                      {isCurrentUser && msg.isRead && <span className="ml-1">✓</span>}
+                  <div className="relative">
+                    {renderMessage(msg)}
+
+                    {/* Message actions - only show on hover or for mobile */}
+                    <div
+                      className={`absolute ${
+                        isCurrentUser
+                          ? "left-0 -translate-x-full"
+                          : "right-0 translate-x-full"
+                      } top-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-1 px-2`}
+                    >
+                      <MessageActions
+                        messageId={msg.id}
+                        isSender={isCurrentUser}
+                        onReply={() => handleReplyToMessage(msg)}
+                        onEdit={() => handleEditMessage(msg)}
+                        onDelete={(deleteFor) =>
+                          handleDeleteMessage(msg.id, deleteFor)
+                        }
+                      />
+                    </div>
+
+                    {/* Message reactions */}
+                    <div className="mt-1">
+                      <MessageReactions
+                        reactions={msg.reactions}
+                        messageId={msg.id}
+                        onReact={handleReaction}
+                        currentUserId={currentUserId}
+                      />
                     </div>
                   </div>
                 </div>
               </div>
-            )
+            );
           })}
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Reply preview */}
+        {replyTo && (
+          <div className="px-4 py-2 bg-muted/20 border-t border-primary/10 flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-sm">
+              <Icons.messageCircle className="h-4 w-4 text-primary" />
+              <div>
+                <span className="font-medium">
+                  Replying to{" "}
+                  {replyTo.senderId === currentUserId
+                    ? "yourself"
+                    : chatData.user.name}
+                </span>
+                <p className="text-muted-foreground truncate">
+                  {replyTo.content}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 rounded-full"
+              onClick={() => setReplyTo(null)}
+            >
+              <Icons.close className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* Editing indicator */}
+        {editingMessage && (
+          <div className="px-4 py-2 bg-amber-500/10 border-t border-amber-500/20 flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-sm">
+              <Icons.edit className="h-4 w-4 text-amber-500" />
+              <div>
+                <span className="font-medium">Editing message</span>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 rounded-full"
+              onClick={() => {
+                setEditingMessage(null);
+                setMessage("");
+              }}
+            >
+              <Icons.close className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
         {/* Message Input */}
         <Card className="border-t rounded-none lg:rounded-b-xl border-primary/10 p-4 bg-background/80 backdrop-blur-md">
           <form onSubmit={handleSendMessage} className="flex space-x-2">
-            <Button type="button" variant="ghost" size="icon" className="rounded-full">
+            <StickerPicker onStickerSelect={handleSendSticker}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+              >
+                <Icons.smile className="h-4 w-4" />
+                <span className="sr-only">Send sticker</span>
+              </Button>
+            </StickerPicker>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+            >
               <Icons.paperclip className="h-4 w-4" />
               <span className="sr-only">Attach file</span>
             </Button>
+
             <Input
-              placeholder="Type a message..."
+              placeholder={
+                editingMessage
+                  ? "Edit your message..."
+                  : isConnected
+                  ? "Type a message..."
+                  : "Connecting to secure chat..."
+              }
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="flex-1 rounded-full border-primary/20"
+              disabled={!isConnected}
             />
-            <Button type="button" variant="ghost" size="icon" className="rounded-full">
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+            >
               <Icons.mic className="h-4 w-4" />
               <span className="sr-only">Voice message</span>
             </Button>
+
             <Button
               type="submit"
               size="icon"
-              disabled={!message.trim()}
-              className={`rounded-full bg-gradient-to-r ${getGradientClasses(chatColor)} hover:opacity-90`}
+              disabled={(!message.trim() && !replyTo) || !isConnected}
+              className={`rounded-full bg-gradient-to-r ${getGradientClasses(
+                chatColor
+              )} hover:opacity-90`}
             >
               <Icons.send className="h-4 w-4" />
-              <span className="sr-only">Send message</span>
+              <span className="sr-only">
+                {editingMessage ? "Save changes" : "Send message"}
+              </span>
             </Button>
           </form>
         </Card>
@@ -294,7 +579,7 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
         className={cn(
           "fixed top-0 right-0 bottom-0 w-80 bg-background/95 backdrop-blur-md border-l border-primary/10 z-40 transition-all duration-300 overflow-hidden",
           isSidebarOpen ? "translate-x-0" : "translate-x-full",
-          isDesktop ? "lg:relative" : "",
+          isDesktop ? "lg:relative" : ""
         )}
       >
         <div className="flex flex-col h-full">
@@ -310,7 +595,11 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
             </Button>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="flex-1 flex flex-col"
+          >
             <TabsList className="grid grid-cols-3 p-1 mx-4 mt-4 rounded-xl bg-muted/50">
               <TabsTrigger
                 value="info"
@@ -336,24 +625,37 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
               <TabsContent value="info" className="mt-4 space-y-6 h-full">
                 <div className="flex flex-col items-center space-y-3">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={chatData.user.avatar} alt={chatData.user.name} />
+                    <AvatarImage
+                      src={chatData.user.avatar}
+                      alt={chatData.user.name}
+                    />
                     <AvatarFallback>{chatData.user.name[0]}</AvatarFallback>
                   </Avatar>
                   <div className="text-center">
-                    <h3 className="font-semibold text-lg">{nickName || chatData.user.name}</h3>
+                    <h3 className="font-semibold text-lg">
+                      {nickName || chatData.user.name}
+                    </h3>
                     <p className="text-sm text-muted-foreground">
-                      {chatData.user.online ? "Active now" : "Last active 2h ago"}
+                      {chatData.user.online
+                        ? "Active now"
+                        : "Last active 2h ago"}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex justify-between">
-                    <Button variant="outline" className="flex-1 rounded-full border-primary/20 mr-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-full border-primary/20 mr-2"
+                    >
                       <Icons.bell className="mr-2 h-4 w-4" />
                       Mute
                     </Button>
-                    <Button variant="outline" className="flex-1 rounded-full border-primary/20">
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-full border-primary/20"
+                    >
                       <Icons.search className="mr-2 h-4 w-4" />
                       Search
                     </Button>
@@ -362,7 +664,20 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
                   <div className="space-y-2">
                     <h4 className="text-sm font-medium">About</h4>
                     <p className="text-sm text-muted-foreground">
-                      Photographer, traveler, and coffee enthusiast. Always looking for the next adventure!
+                      Photographer, traveler, and coffee enthusiast. Always
+                      looking for the next adventure!
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-green-500/10 rounded-lg">
+                    <div className="flex items-center text-green-600 dark:text-green-400 font-medium mb-1">
+                      <Lock className="h-4 w-4 mr-2" />
+                      End-to-End Encrypted
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Messages sent to this chat are secured with end-to-end
+                      encryption. Only you and {chatData.user.name} can read
+                      them.
                     </p>
                   </div>
                 </div>
@@ -373,9 +688,15 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
                   <h4 className="text-sm font-medium">Shared Media</h4>
                   <div className="grid grid-cols-3 gap-2">
                     {chatData.sharedMedia
-                      .filter((media) => media.type === "image" || media.type === "video")
+                      .filter(
+                        (media) =>
+                          media.type === "image" || media.type === "video"
+                      )
                       .map((media) => (
-                        <div key={media.id} className="relative aspect-square rounded-lg overflow-hidden">
+                        <div
+                          key={media.id}
+                          className="relative aspect-square rounded-lg overflow-hidden"
+                        >
                           <Image
                             src={media.url || "/placeholder.svg"}
                             alt="Shared media"
@@ -394,7 +715,10 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
                   <h4 className="text-sm font-medium mt-6">Files & Links</h4>
                   <div className="space-y-2">
                     {chatData.sharedMedia
-                      .filter((media) => media.type === "file" || media.type === "link")
+                      .filter(
+                        (media) =>
+                          media.type === "file" || media.type === "link"
+                      )
                       .map((media) => (
                         <div
                           key={media.id}
@@ -408,7 +732,9 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{media.name}</p>
+                            <p className="text-sm font-medium truncate">
+                              {media.name}
+                            </p>
                             <p className="text-xs text-muted-foreground">
                               {new Date(media.timestamp).toLocaleDateString()}
                             </p>
@@ -442,7 +768,9 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
                             "h-8 rounded-full bg-gradient-to-r",
                             color.from,
                             color.to,
-                            chatColor === color.id ? "ring-2 ring-primary ring-offset-2" : "",
+                            chatColor === color.id
+                              ? "ring-2 ring-primary ring-offset-2"
+                              : ""
                           )}
                           onClick={() => setChatColor(color.id)}
                           title={color.name}
@@ -454,16 +782,35 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
                   <div className="space-y-4 pt-4">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
+                        <Label htmlFor="encryption">
+                          End-to-End Encryption
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Messages are encrypted and can only be read by you and
+                          the recipient
+                        </p>
+                      </div>
+                      <Switch id="encryption" defaultChecked disabled />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
                         <Label htmlFor="read-receipts">Read Receipts</Label>
-                        <p className="text-xs text-muted-foreground">Let others know when you've read their messages</p>
+                        <p className="text-xs text-muted-foreground">
+                          Let others know when you've read their messages
+                        </p>
                       </div>
                       <Switch id="read-receipts" defaultChecked />
                     </div>
 
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <Label htmlFor="notifications">Message Notifications</Label>
-                        <p className="text-xs text-muted-foreground">Receive notifications for new messages</p>
+                        <Label htmlFor="notifications">
+                          Message Notifications
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Receive notifications for new messages
+                        </p>
                       </div>
                       <Switch id="notifications" defaultChecked />
                     </div>
@@ -471,11 +818,17 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
                 </div>
 
                 <div className="pt-4 space-y-2">
-                  <Button variant="outline" className="w-full rounded-full border-destructive/30 text-destructive">
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full border-destructive/30 text-destructive"
+                  >
                     <Icons.trash className="mr-2 h-4 w-4" />
                     Delete Chat
                   </Button>
-                  <Button variant="outline" className="w-full rounded-full border-destructive/30 text-destructive">
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-full border-destructive/30 text-destructive"
+                  >
                     <Icons.ban className="mr-2 h-4 w-4" />
                     Block User
                   </Button>
@@ -486,6 +839,5 @@ export function ChatRoom({ chatId }: ChatRoomProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

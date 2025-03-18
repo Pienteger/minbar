@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Icons } from "@/components/icons"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Logo } from "@/components/logo"
-import { motion } from "framer-motion"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Icons } from "@/components/icons";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Logo } from "@/components/logo";
+import { motion } from "framer-motion";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navItems = [
   {
@@ -26,6 +26,11 @@ const navItems = [
     icon: Icons.users,
   },
   {
+    name: "Mosques",
+    href: "/mosques",
+    icon: Icons.mosque,
+  },
+  {
     name: "Notifications",
     href: "/notifications",
     icon: Icons.bell,
@@ -40,21 +45,23 @@ const navItems = [
     href: "/settings",
     icon: Icons.settings,
   },
-]
+];
 
 export function DesktopSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <div className="hidden lg:flex flex-col h-screen w-64 border-r border-primary/10 bg-background/80 backdrop-blur-md fixed left-0 top-0 z-30 p-4">
       <div className="flex items-center mb-8 pl-2">
-        <Logo className="h-8" />
+        <Link href={"/feed"}>
+          <Logo className="h-8" />
+        </Link>
       </div>
 
       <nav className="flex-1 space-y-2">
         {navItems.map((item) => {
-          const isActive = pathname === item.href
-          const Icon = item.icon
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
 
           return (
             <Link
@@ -64,7 +71,7 @@ export function DesktopSidebar() {
                 "flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-200 group relative",
                 isActive
                   ? "text-primary bg-primary/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
               )}
             >
               {isActive && (
@@ -83,7 +90,7 @@ export function DesktopSidebar() {
                 </span>
               )}
             </Link>
-          )
+          );
         })}
       </nav>
 
@@ -99,10 +106,9 @@ export function DesktopSidebar() {
               <div className="text-muted-foreground text-xs">@mahmudx</div>
             </div>
           </div>
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
         </div>
       </div>
     </div>
-  )
+  );
 }
-

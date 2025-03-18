@@ -22,7 +22,7 @@ const recentNotifications = [
     id: "1",
     type: "like",
     user: {
-      name: "Emma Wilson",
+      name: "Fardin Ahosan",
       avatar: "/placeholder.svg?height=40&width=40",
     },
     content: "liked your post",
@@ -33,7 +33,7 @@ const recentNotifications = [
     id: "2",
     type: "comment",
     user: {
-      name: "Alex Johnson",
+      name: "Khalid Sakib",
       avatar: "/placeholder.svg?height=40&width=40",
     },
     content: "commented on your photo",
@@ -44,7 +44,7 @@ const recentNotifications = [
     id: "3",
     type: "friend_request",
     user: {
-      name: "Sarah Parker",
+      name: "Bashar Ovi",
       avatar: "/placeholder.svg?height=40&width=40",
     },
     content: "sent you a friend request",

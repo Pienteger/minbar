@@ -1,30 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Icons } from "@/components/icons"
-import { RichTextEditor } from "@/components/rich-text-editor"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Icons } from "@/components/icons";
+import { RichTextEditor } from "@/components/rich-text-editor";
 
 export function CreatePostButton() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [postContent, setPostContent] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
+  const [postContent, setPostContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = () => {
-    if (!postContent.trim()) return
+    if (!postContent.trim()) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     // Simulate post creation
     setTimeout(() => {
-      setIsSubmitting(false)
-      setPostContent("")
-      setIsOpen(false)
-    }, 1000)
-  }
+      setIsSubmitting(false);
+      setPostContent("");
+      setIsOpen(false);
+    }, 1000);
+  };
 
   return (
     <>
@@ -75,11 +80,11 @@ export function CreatePostButton() {
           </DialogHeader>
           <div className="flex items-start space-x-3 pt-4">
             <Avatar>
-              <AvatarImage src="/placeholder.svg?height=40&width=40" alt="User" />
+              <AvatarImage src="/me.jpg?height=40&width=40" alt="User" />
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <div className="font-semibold">John Doe</div>
+              <div className="font-semibold">Mahmudul Hasan</div>
 
               <RichTextEditor
                 value={postContent}
@@ -110,6 +115,5 @@ export function CreatePostButton() {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
-
