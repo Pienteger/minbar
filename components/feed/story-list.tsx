@@ -27,13 +27,13 @@ const userStories = [
     stories: [
       {
         id: "s1",
-        image: "/placeholder.svg?height=800&width=400",
+        image: "/arfiz-story-1.jpg?height=800&width=400",
         text: "Beautiful sunset today! 🌅",
         createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
       },
       {
         id: "s2",
-        image: "/placeholder.svg?height=800&width=400",
+        image: "/arfiz-story-2.jpg?height=800&width=400",
         text: "Can't wait for the weekend!",
         createdAt: new Date(Date.now() - 1000 * 60 * 25), // 25 minutes ago
       },
@@ -48,32 +48,32 @@ const userStories = [
     stories: [
       {
         id: "s3",
-        image: "/placeholder.svg?height=800&width=400",
+        image: "/toha-story-1.jpg?height=800&width=400",
         createdAt: new Date(Date.now() - 1000 * 60 * 120), // 2 hours ago
       },
     ],
   },
   {
     id: "4",
-    username: "refat",
-    avatar: "/refat.jpg?height=40&width=40",
+    username: "alif",
+    avatar: "/alif.jpg?height=40&width=40",
     hasStory: true,
     isUser: false,
     stories: [
       {
         id: "s4",
-        image: "/placeholder.svg?height=800&width=400",
+        image: "/alif-story-1.jpg?height=800&width=400",
         text: "New recipe I tried today!",
         createdAt: new Date(Date.now() - 1000 * 60 * 180), // 3 hours ago
       },
       {
         id: "s5",
-        image: "/placeholder.svg?height=800&width=400",
+        image: "/alif-story-2.jpg?height=800&width=400",
         createdAt: new Date(Date.now() - 1000 * 60 * 175), // 2.9 hours ago
       },
       {
         id: "s6",
-        image: "/placeholder.svg?height=800&width=400",
+        image: "/alif-story-3.jpg?height=800&width=400",
         text: "The final result 😋",
         createdAt: new Date(Date.now() - 1000 * 60 * 170), // 2.8 hours ago
       },
@@ -88,7 +88,7 @@ const userStories = [
     stories: [
       {
         id: "s7",
-        image: "/placeholder.svg?height=800&width=400",
+        image: "/y.jpg?height=800&width=400",
         createdAt: new Date(Date.now() - 1000 * 60 * 240), // 4 hours ago
       },
     ],
@@ -102,13 +102,13 @@ const userStories = [
     stories: [
       {
         id: "s8",
-        image: "/placeholder.svg?height=800&width=400",
-        text: "Concert night! 🎵",
+        image: "/kayem-story-1.jpg?height=800&width=400",
+        text: "শহীদ মীর কাসেম আলী",
         createdAt: new Date(Date.now() - 1000 * 60 * 300), // 5 hours ago
       },
       {
         id: "s9",
-        image: "/placeholder.svg?height=800&width=400",
+        image: "/kayem-story-2.jpg?height=800&width=400",
         createdAt: new Date(Date.now() - 1000 * 60 * 290), // 4.8 hours ago
       },
     ],
