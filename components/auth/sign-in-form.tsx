@@ -1,8 +1,9 @@
 "use client";
-
+import { Eye, EyeOff } from "lucide-react";
 import type React from "react";
-
-import { useState } from "react";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -10,30 +11,54 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Icons } from "@/components/icons";
+import { useForm } from "react-hook-form";
 
 export function SignInForm() {
   const router = useRouter();
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  async function onSubmit(event: React.FormEvent) {
-    event.preventDefault();
-    setIsLoading(true);
+  const loginSchema = z.object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(1, "Password is required"),
+  });
 
-    // Simulate authentication
-    setTimeout(() => {
+  type LoginForm = z.infer<typeof loginSchema>;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginForm) => {
+    // go to feed 
+    router.push("/feed");
+    try {
+      setIsLoading(true);
+      setError("");
+      await login(data);
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Invalid email or password"
+      );
+    } finally {
       setIsLoading(false);
-      router.push("/feed");
-    }, 1000);
-  }
+    }
+  };
 
   return (
     <div className="grid gap-6 w-full">
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email or Phone</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              {...register("email")}
               placeholder="name@example.com"
               type="email"
               autoCapitalize="none"
@@ -43,6 +68,9 @@ export function SignInForm() {
               disabled={isLoading}
               required
             />
+            {errors.email && (
+              <p className="text-sm text-red-500">{errors.email.message}</p>
+            )}
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
@@ -54,16 +82,34 @@ export function SignInForm() {
                 Forgot password?
               </Link>
             </div>
-            <Input
-              id="password"
-              placeholder="••••••••"
-              type="password"
-              autoCapitalize="none"
-              autoComplete="current-password"
-              disabled={isLoading}
-              value={"password"}
-              required
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                placeholder="••••••••"
+                type={showPassword ? "text" : "password"}
+                {...register("password")}
+                autoCapitalize="none"
+                autoComplete="current-password"
+                disabled={isLoading}
+                value={"password"}
+                required
+              />
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+                <span className="sr-only">Toggle password visibility</span>
+              </Button>
+            </div>
           </div>
           <Button type="submit" disabled={isLoading}>
             {isLoading && (
@@ -106,3 +152,7 @@ export function SignInForm() {
     </div>
   );
 }
+function login(data: { email: string; password: string; }) {
+  throw new Error("Function not implemented.");
+}
+

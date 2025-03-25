@@ -40,7 +40,8 @@ const posts = [
         role: "member",
       },
     },
-    content: "Longest Railway Bridge in Bangladesh. 🌉 #Bangladesh #JamunaBridge",
+    content:
+      "Longest Railway Bridge in Bangladesh. 🌉 #Bangladesh #JamunaBridge",
     images: ["/jamuna.jpg?height=400&width=600"],
     timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
     likes: 24,

@@ -54,7 +54,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (error) {
         clearStoredTokens();
-        window.location.href = "/login";
+        window.location.href = "/auth/sign-in";
         return Promise.reject(error);
       }
     }

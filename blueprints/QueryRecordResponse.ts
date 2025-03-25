@@ -1,4 +1,3 @@
-import { inherits } from "util";
 import { IBaseResponse } from "./IBaseResponse";
 
 export interface QueryRecordResponse<TEntity> extends IBaseResponse {
