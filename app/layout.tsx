@@ -2,7 +2,9 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_Bengali } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+
+import "./globals.css";
+import { Providers } from "@/components/providers";
 
 const inter = Inter({ subsets: ["latin"] });
 const notoSansBengali = Noto_Sans_Bengali({ subsets: ["bengali"] });
@@ -27,17 +29,8 @@ export default function RootLayout({
         />
       </head>
       <body className={notoSansBengali.className + " " + inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
-
-import "./globals.css";

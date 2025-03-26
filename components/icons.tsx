@@ -78,11 +78,17 @@ import {
   Repeat,
   EyeOff,
   Reply,
+  AlertTriangle,
+  ChevronDown,
+  ChevronsDown
 } from "lucide-react";
 
 export type Icon = LucideIcon;
 
 export const Icons = {
+  alertTriangle: AlertTriangle,
+  chevronDown: ChevronDown,
+  chevronsDown: ChevronsDown,
   reply: Reply,
   eyeOff: EyeOff,
   repeat: Repeat,

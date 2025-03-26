@@ -1,79 +1,86 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Icons } from "@/components/icons"
-import type { Mosque, MembershipType, MembershipStatus } from "@/types/mosque"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Icons } from "@/components/icons";
+import type { MembershipType, MembershipStatus } from "@/types/mosque";
+import { cn } from "@/lib/utils";
+import MosqueCardItem from "@/models/mosques/MosqueCardItem";
 
 interface MosqueCardProps {
-  mosque: Mosque
+  mosque: MosqueCardItem;
   membership?: {
-    type: MembershipType
-    status: MembershipStatus
-  }
-  onJoin?: (mosqueId: string, membershipType: MembershipType) => void
-  className?: string
+    type: MembershipType;
+    status: MembershipStatus;
+  };
+  onJoin?: (mosqueId: string, membershipType: MembershipType) => void;
+  className?: string;
 }
 
-export function MosqueCard({ mosque, membership, onJoin, className }: MosqueCardProps) {
-  const [isJoining, setIsJoining] = useState(false)
-  const [selectedMembershipType, setSelectedMembershipType] = useState<MembershipType | null>(null)
+export function MosqueCard({
+  mosque,
+  membership,
+  onJoin,
+  className,
+}: MosqueCardProps) {
+  const [isJoining, setIsJoining] = useState(false);
+  const [selectedMembershipType, setSelectedMembershipType] =
+    useState<MembershipType | null>(null);
 
   const handleJoin = (type: MembershipType) => {
-    setIsJoining(true)
-    setSelectedMembershipType(type)
+    setIsJoining(true);
+    setSelectedMembershipType(type);
 
     if (onJoin) {
-      onJoin(mosque.id, type)
+      onJoin(mosque.id, type);
     }
 
     // In a real app, this would be handled by the onJoin callback
     setTimeout(() => {
-      setIsJoining(false)
-      setSelectedMembershipType(null)
-    }, 1000)
-  }
+      setIsJoining(false);
+      setSelectedMembershipType(null);
+    }, 1000);
+  };
 
   const getMembershipBadge = () => {
-    if (!membership) return null
+    if (!membership) return null;
 
-    let color = ""
-    let icon = null
+    let color = "";
+    let icon = null;
 
     switch (membership.type) {
       case "home":
-        color = "bg-blue-500"
-        icon = <Icons.home className="h-3 w-3 mr-1" />
-        break
+        color = "bg-blue-500";
+        icon = <Icons.home className="h-3 w-3 mr-1" />;
+        break;
       case "office":
-        color = "bg-green-500"
-        icon = <Icons.briefcase className="h-3 w-3 mr-1" />
-        break
+        color = "bg-green-500";
+        icon = <Icons.briefcase className="h-3 w-3 mr-1" />;
+        break;
       case "roaming":
-        color = "bg-purple-500"
-        icon = <Icons.map className="h-3 w-3 mr-1" />
-        break
+        color = "bg-purple-500";
+        icon = <Icons.map className="h-3 w-3 mr-1" />;
+        break;
     }
 
-    let statusColor = ""
+    let statusColor = "";
     switch (membership.status) {
       case "active":
-        statusColor = "bg-green-500"
-        break
+        statusColor = "bg-green-500";
+        break;
       case "pending":
-        statusColor = "bg-amber-500"
-        break
+        statusColor = "bg-amber-500";
+        break;
       case "break":
-        statusColor = "bg-gray-500"
-        break
+        statusColor = "bg-gray-500";
+        break;
       case "rejected":
-        statusColor = "bg-red-500"
-        break
+        statusColor = "bg-red-500";
+        break;
     }
 
     return (
@@ -88,11 +95,16 @@ export function MosqueCard({ mosque, membership, onJoin, className }: MosqueCard
           </Badge>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   return (
-    <Card className={cn("overflow-hidden transition-all duration-300 hover:shadow-md group", className)}>
+    <Card
+      className={cn(
+        "overflow-hidden transition-all duration-300 hover:shadow-md group",
+        className
+      )}
+    >
       <div className="relative h-40">
         <Image
           src={mosque.coverImage || "/placeholder.svg?height=160&width=400"}
@@ -104,7 +116,7 @@ export function MosqueCard({ mosque, membership, onJoin, className }: MosqueCard
         <div className="absolute bottom-0 left-0 p-4 text-white">
           <h3 className="font-bold text-lg">{mosque.name}</h3>
           <p className="text-sm text-white/80">
-            {mosque.city}, {mosque.country}
+            {mosque.city}, {mosque.countryIsoCode}
           </p>
         </div>
         {getMembershipBadge()}
@@ -113,14 +125,22 @@ export function MosqueCard({ mosque, membership, onJoin, className }: MosqueCard
       <CardContent className="p-4">
         <div className="flex items-center space-x-2 mb-2">
           <Icons.users className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">{mosque.memberCount} members</span>
+          <span className="text-sm text-muted-foreground">
+            {mosque.memberCount} members
+          </span>
         </div>
 
-        <p className="text-sm line-clamp-2">{mosque.description}</p>
+        <p className="text-sm leading-snug min-h-[2.5rem] line-clamp-2">
+          {mosque.description}
+        </p>
       </CardContent>
 
       <CardFooter className="p-4 pt-0 flex justify-between">
-        <Button variant="outline" asChild className="rounded-full border-primary/20">
+        <Button
+          variant="outline"
+          asChild
+          className="rounded-full border-primary/20"
+        >
           <Link href={`/mosques/${mosque.id}`}>View Details</Link>
         </Button>
 
@@ -154,7 +174,7 @@ export function MosqueCard({ mosque, membership, onJoin, className }: MosqueCard
                     disabled={isJoining}
                   >
                     <Icons.home className="mr-2 h-4 w-4" />
-                    Home Mosque
+                    Home
                   </Button>
                   <Button
                     size="sm"
@@ -163,7 +183,7 @@ export function MosqueCard({ mosque, membership, onJoin, className }: MosqueCard
                     disabled={isJoining}
                   >
                     <Icons.briefcase className="mr-2 h-4 w-4" />
-                    Office Mosque
+                    Office
                   </Button>
                   <Button
                     size="sm"
@@ -172,7 +192,7 @@ export function MosqueCard({ mosque, membership, onJoin, className }: MosqueCard
                     disabled={isJoining}
                   >
                     <Icons.map className="mr-2 h-4 w-4" />
-                    Roaming Mosque
+                    Roaming
                   </Button>
                 </div>
               </Card>
@@ -197,13 +217,16 @@ export function MosqueCard({ mosque, membership, onJoin, className }: MosqueCard
             )}
           </Button>
         ) : (
-          <Button variant="outline" className="rounded-full border-primary/20" disabled={isJoining}>
+          <Button
+            variant="outline"
+            className="rounded-full border-primary/20"
+            disabled={isJoining}
+          >
             <Icons.check className="mr-2 h-4 w-4 text-green-500" />
             Joined
           </Button>
         )}
       </CardFooter>
     </Card>
-  )
+  );
 }
-
