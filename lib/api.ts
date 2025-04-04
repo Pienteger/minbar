@@ -6,7 +6,7 @@ import {
 } from "@/lib/token-storage";
 import { QueryRecordResponse } from "../blueprints/QueryRecordResponse";
 
-const BASE_URL = "https://localhost:7102";
+const BASE_URL = "https://localhost:7215";
 
 export const api = axios.create({
   baseURL: BASE_URL,

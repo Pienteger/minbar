@@ -1,7 +1,6 @@
 "use client"
-
-import type React from "react"
-
+import * as z from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -10,22 +9,39 @@ import { Label } from "@/components/ui/label"
 import { Icons } from "@/components/icons"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { useAuth } from "@/contexts/auth-context"
 
 export function ForgotPasswordForm() {
-  const [isLoading, setIsLoading] = useState(false)
+  const { forgotPassword, isLoading } = useAuth()
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState("")
 
-  async function onSubmit(event: React.FormEvent) {
-    event.preventDefault()
-    setIsLoading(true)
-    setError("")
+  const forgotPasswordSchema = z.object({
+    email: z.string().email("Invalid email address"),
+  })
 
-    // Simulate password reset request
-    setTimeout(() => {
-      setIsLoading(false)
+  type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordForm>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  })
+
+  const onSubmit = async (data: ForgotPasswordForm) => {
+    try {
+      setError("")
+      await forgotPassword(data)
       setIsSubmitted(true)
-    }, 1000)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to send reset email")
+    }
   }
 
   return (
@@ -43,7 +59,7 @@ export function ForgotPasswordForm() {
           </Button>
         </div>
       ) : (
-        <form onSubmit={onSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4">
             {error && (
               <Alert variant="destructive">
@@ -60,9 +76,11 @@ export function ForgotPasswordForm() {
                 autoCapitalize="none"
                 autoComplete="email"
                 autoCorrect="off"
+                {...register("email")}
                 disabled={isLoading}
                 required
               />
+              {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
             </div>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}

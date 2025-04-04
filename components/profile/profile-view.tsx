@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -131,9 +132,11 @@ export function ProfileView() {
                 </div>
               )}
           </div>
-          <Button variant="outline" className="rounded-full border-primary/20">
-            <Icons.edit className="mr-2 h-4 w-4" />
-            Edit Profile
+          <Button variant="outline" className="rounded-full border-primary/20" asChild>
+            <Link href="/profile/edit">
+              <Icons.edit className="mr-2 h-4 w-4" />
+              Edit Profile
+            </Link>
           </Button>
         </div>
 

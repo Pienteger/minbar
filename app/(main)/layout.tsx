@@ -4,6 +4,7 @@ import { TopNavigation } from "@/components/navigation/top-navigation"
 import { DesktopSidebar } from "@/components/navigation/desktop-sidebar"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { NotificationProvider } from "@/components/notifications/notification-provider"
+import {AuthDebugger} from "@/components/debug/auth-debugger";
 
 export default function MainLayout({
   children,
@@ -30,6 +31,8 @@ export default function MainLayout({
             <ThemeToggle />
           </div> */}
         </div>
+
+        <AuthDebugger />
       </div>
     </NotificationProvider>
   )
