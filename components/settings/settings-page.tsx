@@ -16,11 +16,11 @@ import {ProfilePictureUpload} from "@/components/profile/profile-picture-upload"
 import {useToast} from "@/components/ui/use-toast"
 
 export function SettingsPage() {
-    const {theme, setTheme} = useTheme()
-    const [isLoading, setIsLoading] = useState(false)
     const [activeTab, setActiveTab] = useState("account")
+    const [isLoading, setIsLoading] = useState(false)
     const {user, logout} = useAuth()
     const {toast} = useToast()
+    const {theme, setTheme} = useTheme()
 
     // Use actual user data if available, otherwise use mock data
     const userData = user
@@ -84,22 +84,9 @@ export function SettingsPage() {
 
     return (
         <div className="container py-6 max-w-4xl">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-3xl font-bold">Settings</h1>
-                    <p className="text-muted-foreground">Manage your account settings and preferences</p>
-                </div>
-
-                <Button onClick={handleLogOut} variant="destructive" className="rounded-full" disabled={isLoading}>
-                    {isLoading ? (
-                        <>
-                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin"/>
-                            Logging out...
-                        </>
-                    ) : (
-                        "Log Out"
-                    )}
-                </Button>
+            <div className="mb-6">
+                <h1 className="text-3xl font-bold">Settings</h1>
+                <p className="text-muted-foreground">Manage your account settings and preferences</p>
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

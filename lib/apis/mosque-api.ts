@@ -1,4 +1,4 @@
-﻿import {api} from "../api";
+﻿import {restClient} from "../rest-client";
 import {ServiceResponse} from "@/blueprints/ServiceResponse";
 
 
@@ -18,12 +18,12 @@ export interface CreateMosqueData {
 
 export const mosqueApi = {
     create: (data: CreateMosqueData) =>
-        api.post<ServiceResponse<number>>("/Mosque/CreateMosque", data),
+        restClient.post<ServiceResponse<number>>("/Mosque/CreateMosque", data),
     uploadPhoto: (mosqueId: number, file: File) => {
         const formData = new FormData();
         formData.append("imageStream", file);
         formData.append("mosqueId", mosqueId.toString());
-        return api.post<ServiceResponse>(
+        return restClient.post<ServiceResponse>(
             `/Mosque/UploadPhoto`,
             formData,
             {
@@ -37,7 +37,7 @@ export const mosqueApi = {
         const formData = new FormData();
         formData.append("imageStream", file);
         formData.append("mosqueId", mosqueId.toString());
-        return api.post<ServiceResponse>(
+        return restClient.post<ServiceResponse>(
             `/Mosque/UploadCoverPhoto`,
             formData,
             {

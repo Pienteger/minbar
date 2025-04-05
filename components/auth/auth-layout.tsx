@@ -1,7 +1,12 @@
+"use client"
 import type React from "react"
 import {Card, CardContent, CardFooter} from "@/components/ui/card"
 import {Logo} from "@/components/logo"
 import Link from "next/link"
+import {useEffect} from "react"
+import {useRouter} from "next/navigation";
+import {useAuth} from "@/contexts/auth-context";
+import {usePathname} from 'next/navigation';
 
 interface AuthLayoutProps {
     children: React.ReactNode
@@ -9,6 +14,17 @@ interface AuthLayoutProps {
 
 export function AuthLayout({children}: AuthLayoutProps) {
 
+    const router = useRouter();
+    const {isAuthenticated, isLoading, user, profileLoading} = useAuth();
+
+    useEffect(() => {
+        if (!isLoading && !profileLoading && isAuthenticated && user) {
+            alert("adele");
+            router.push("/feed");
+        }
+    }, [isAuthenticated, isLoading, profileLoading, user, router]);
+
+    if (isLoading || (isAuthenticated && user)) return null;
 
     return (
         <div

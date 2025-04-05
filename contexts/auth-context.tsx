@@ -5,7 +5,7 @@ import {useRouter} from "next/navigation";
 import {
     getStoredToken,
     setStoredTokens,
-    clearStoredTokens,
+    clearStoredTokens, isTokenExpired,
 } from "@/lib/token-storage";
 import {
     authApi,
@@ -22,6 +22,7 @@ interface User {
     id: number;
     email: string;
     name: string;
+    userName?: string;
     profilePictureUrl?: string;
 }
 
@@ -35,10 +36,10 @@ interface AuthContextType {
     forgotPassword: (data: ForgotPasswordData) => Promise<void>;
     resetPassword: (data: ResetPasswordData) => Promise<void>;
     updateProfilePicture: (file: File) => Promise<void>;
+    profileLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 
 export function AuthProvider({children}: { children: React.ReactNode }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -47,7 +48,12 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
     const router = useRouter();
     const {toast} = useToast();
 
-    const {data, loading: profileLoading, error} = useUserProfile();
+    const {
+        data,
+        loading: profileLoading,
+        error,
+        refetch: refetchProfile,
+    } = useUserProfile();
 
     useEffect(() => {
         if (data?.me) {
@@ -56,94 +62,45 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
                 id: me.id,
                 email: me.email,
                 name: me.name,
+                userName: me.userName,
                 profilePictureUrl:
-                    me.displayImages?.[0]?.imageUrl || "/placeholder.svg?height=200&width=200",
+                    me.displayImages?.[0]?.imageUrl ||
+                    "/placeholder.svg?height=200&width=200",
             });
-            console.log(typeof me, me);
-            setIsAuthenticated(true);
         }
     }, [data]);
 
     useEffect(() => {
+
         const checkAuth = async () => {
             try {
-                const token = getStoredToken()
-                if (token) {
-                    console.log("Found stored token, setting authenticated state")
-                    setIsAuthenticated(true)
-                    // In a real app, you'd want to fetch the user profile here
-                    // await fetchUserProfile()
-                } else {
-                    console.log("No stored token found")
-                }
-            } catch (error) {
-                console.error("Auth initialization error:", error)
-                clearStoredTokens()
-                setIsAuthenticated(false)
-                setUser(null)
-            } finally {
-                console.log("Auth initialization complete, setting isLoading to false")
-                setIsLoading(false)
-            }
-        }
+                const token = getStoredToken();
 
-        checkAuth()
+                if (token?.accessToken && !isTokenExpired()) {
+                    setIsAuthenticated(true);
+                } else if (token?.refreshToken) {
+                    const response = await authApi.refreshToken({refreshToken: token.refreshToken});
+                    handleAuthResponse(response.data);
+                    await refetchProfile();
+                } else {
+                    clearStoredTokens();
+                    setIsAuthenticated(false);
+                }
+            } catch (e) {
+                clearStoredTokens();
+                setIsAuthenticated(false);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+
+        checkAuth();
     }, []);
 
-    // const fetchUserProfile = async () => {
-    //     try {
-    //         // This would be a real API call in production
-    //         // For now, we'll use mock data
-    //         // setUser({
-    //         //     id: 1,
-    //         //     email: "user@example.com",
-    //         //     name: "John Doe",
-    //         //     profilePictureUrl: "/placeholder.svg?height=200&width=200",
-    //         // });
-    //
-    //         const GET_USER_GRAPH_QUERY = gql`
-    //             query Me {
-    //                 user {
-    //                     displayImages(types: PROFILE) {
-    //                         displayImageType
-    //                         imageUrl
-    //                     }
-    //                     name
-    //                     id
-    //                     email
-    //                 }
-    //             }
-    //         `;
-    //
-    //         const {loading, error, data, fetchMore} = useQuery(GET_USER_GRAPH_QUERY, {
-    //             notifyOnNetworkStatusChange: true,
-    //             fetchPolicy: "cache-first", // cache-first is the default
-    //         });
-    //
-    //         alert(data);
-    //
-    //         if (data && data.user) {
-    //             const {user} = data;
-    //             setUser({
-    //                 id: user.id,
-    //                 email: user.email,
-    //                 name: user.name,
-    //                 profilePictureUrl:
-    //                     user.displayImages?.[0]?.imageUrl || "/placeholder.svg?height=200&width=200",
-    //             });
-    //         } else {
-    //             console.error("No user data found");
-    //         }
-    //
-    //     } catch (error) {
-    //         console.error("Error fetching user profile:", error);
-    //         throw error;
-    //     }
-    // };
-
     const handleAuthResponse = (response: TokenResponse) => {
-        const {accessToken, refreshToken} = response;
-        setStoredTokens({accessToken, refreshToken});
+        const {accessToken, refreshToken, expiresIn} = response;
+        setStoredTokens({accessToken, refreshToken, expiresIn});
         setIsAuthenticated(true);
     };
 
@@ -152,12 +109,8 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
             setIsLoading(true);
             const response = await authApi.login(data);
             handleAuthResponse(response.data);
-            //await fetchUserProfile();
-            router.push("/feed");
-            toast({
-                title: "Login successful",
-                description: "Welcome back!",
-            });
+            await refetchProfile();
+            toast({title: "Login successful", description: "Welcome back!"});
         } catch (error) {
             console.error("Login error:", error);
             toast({
@@ -180,8 +133,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
                 password: data.password,
             });
             handleAuthResponse(loginResponse.data);
-            //await fetchUserProfile();
-            router.push("/feed");
+            await refetchProfile();
             toast({
                 title: "Registration successful",
                 description: "Your account has been created",
@@ -272,8 +224,6 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
             setIsLoading(true);
             if (!user) throw new Error("User not authenticated");
             await authApi.updateProfilePicture(user.id, file);
-            // Update the user profile with the new picture URL
-            // In a real app, you'd want to fetch the updated user profile
             setUser({
                 ...user,
                 profilePictureUrl: URL.createObjectURL(file),
@@ -305,7 +255,10 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         forgotPassword,
         resetPassword,
         updateProfilePicture,
+        profileLoading
     };
+
+    if (isLoading || profileLoading) return null;
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

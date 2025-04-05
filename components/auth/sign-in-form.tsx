@@ -15,18 +15,9 @@ import {useAuth} from "@/contexts/auth-context";
 
 export function SignInForm() {
     const router = useRouter();
-    const {login, isLoading, isAuthenticated} = useAuth();
+    const {login, isLoading, user} = useAuth();
     const [error, setError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-
-    useEffect(() => {
-        if (!isLoading && isAuthenticated) {
-            router.replace("/feed")
-        }
-    }, [isAuthenticated, isLoading, router])
-
-    if (isLoading || isAuthenticated) return null
-
 
     const loginSchema = z.object({
         email: z.string().email("Invalid email address"),

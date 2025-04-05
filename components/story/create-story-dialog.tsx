@@ -43,14 +43,14 @@ export function CreateStoryDialog({ open, onOpenChange, onCreateStory }: CreateS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md rounded-xl border-primary/20 bg-background/95 backdrop-blur-sm">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto rounded-xl border-primary/20 bg-background/95 backdrop-blur-sm">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent">
             Create Story
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 max-h-full">
           {selectedImage ? (
             <div className="relative aspect-[9/16] max-h-[300px] rounded-lg overflow-hidden mx-auto">
               <Image
