@@ -1,4 +1,5 @@
 export enum DisplayImageType {
-  Cover = "COVER",
-  Profile = "PROFILE",
+    Cover = "COVER",
+    Profile = "PROFILE",
 }
+

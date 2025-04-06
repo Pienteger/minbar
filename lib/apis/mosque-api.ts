@@ -19,6 +19,7 @@ export interface CreateMosqueData {
 export const mosqueApi = {
     create: (data: CreateMosqueData) =>
         restClient.post<ServiceResponse<number>>("/Mosque/CreateMosque", data),
+
     uploadPhoto: (mosqueId: number, file: File) => {
         const formData = new FormData();
         formData.append("imageStream", file);

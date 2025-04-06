@@ -17,6 +17,8 @@ import {
 } from "@/lib/apis/auth-api";
 import {useToast} from "@/components/ui/use-toast";
 import {useUserProfile} from "@/hooks/use-user-profile";
+import type {ApolloQueryResult} from "@apollo/client/core";
+import type {MaybeMasked} from "@apollo/client/masking";
 
 interface User {
     id: number;
@@ -35,7 +37,7 @@ interface AuthContextType {
     logout: () => Promise<void>;
     forgotPassword: (data: ForgotPasswordData) => Promise<void>;
     resetPassword: (data: ResetPasswordData) => Promise<void>;
-    updateProfilePicture: (file: File) => Promise<void>;
+    refetchProfile(): Promise<any>;
     profileLoading: boolean;
 }
 
@@ -87,6 +89,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
                     setIsAuthenticated(false);
                 }
             } catch (e) {
+                console.error(e);
                 clearStoredTokens();
                 setIsAuthenticated(false);
             } finally {
@@ -254,7 +257,7 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         logout,
         forgotPassword,
         resetPassword,
-        updateProfilePicture,
+        refetchProfile,
         profileLoading
     };
 

@@ -18,6 +18,8 @@ import {MosqueMembershipBadge} from "@/components/mosque/mosque-membership-badge
 import {UserMosqueList} from "@/components/mosque/user-mosque-list";
 import {useAuth} from "@/contexts/auth-context";
 import {useRouter} from "next/navigation";
+import {gql, useQuery} from "@apollo/client";
+import {MosqueCardItemQueryResult} from "@/graphql/models/mosques/MosqueCardItemQueryResult";
 
 // Mock data for user profile
 const userData = {
@@ -57,6 +59,35 @@ const userData = {
     ],
 };
 
+const GET_USER_DATA_GRAPHQL_QUERY = gql`
+    query Me {
+        me {
+            displayImages(types: COVER) {
+                displayImageType
+                imageUrl
+            }
+            postCount
+            followerCount
+            followingCount
+            friendCount
+            photoCount
+            id
+        }
+    }
+`;
+
+interface Me{
+    displayImages: {
+        displayImageType: string;
+        imageUrl: string;
+    }[];
+    postCount: number;
+    followerCount: number;
+    followingCount: number;
+    friendCount: number;
+    photoCount: number;
+}
+
 export function ProfileView() {
     const [activeTab, setActiveTab] = useState("posts");
     const [isLoading, setIsLoading] = useState(false)
@@ -74,6 +105,13 @@ export function ProfileView() {
         }
     }
 
+    const {loading, error, data, fetchMore} = useQuery(GET_USER_DATA_GRAPHQL_QUERY, {
+        notifyOnNetworkStatusChange: true,
+        fetchPolicy: "cache-first", // cache-first is the default
+    });
+
+    const me = (data?.me as Me) || [];
+
     return (
         <div className="-mx-4 lg:mx-0 lg:max-w-3xl lg:mx-auto">
             <div
@@ -87,8 +125,8 @@ export function ProfileView() {
                 <div
                     className="absolute -bottom-16 left-4 h-32 w-32 rounded-full border-4 border-background overflow-hidden">
                     <Image
-                        src={userData.avatar || "/placeholder.svg"}
-                        alt={userData.name}
+                        src={user?.profilePictureUrl || "/placeholder.svg"}
+                        alt={user?.name || "User"}
                         fill
                         className="object-cover"
                     />
@@ -141,8 +179,8 @@ export function ProfileView() {
             <div className="mt-20 px-4">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h1 className="text-2xl font-bold">{userData.name}</h1>
-                        <p className="text-muted-foreground">{userData.username}</p>
+                        <h1 className="text-2xl font-bold">{user?.name}</h1>
+                        <p className="text-muted-foreground">{user?.userName}</p>
 
                         {/* Mosque membership badges */}
                         {userData.mosqueMemberships &&
@@ -189,15 +227,15 @@ export function ProfileView() {
 
                 <div className="flex justify-between mt-6 mb-4">
                     <div className="text-center px-4">
-                        <div className="text-xl font-bold">{userData.stats.posts}</div>
+                        <div className="text-xl font-bold">{me.postCount}</div>
                         <div className="text-sm text-muted-foreground">Posts</div>
                     </div>
                     <div className="text-center px-4">
-                        <div className="text-xl font-bold">{userData.stats.friends}</div>
+                        <div className="text-xl font-bold">{me.friendCount}</div>
                         <div className="text-sm text-muted-foreground">Friends</div>
                     </div>
                     <div className="text-center px-4">
-                        <div className="text-xl font-bold">{userData.stats.photos}</div>
+                        <div className="text-xl font-bold">{me.photoCount}</div>
                         <div className="text-sm text-muted-foreground">Photos</div>
                     </div>
                 </div>

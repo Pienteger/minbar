@@ -19,7 +19,6 @@ export function AuthLayout({children}: AuthLayoutProps) {
 
     useEffect(() => {
         if (!isLoading && !profileLoading && isAuthenticated && user) {
-            alert("adele");
             router.push("/feed");
         }
     }, [isAuthenticated, isLoading, profileLoading, user, router]);
