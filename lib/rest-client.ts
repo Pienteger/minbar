@@ -12,7 +12,7 @@ export const restClient = axios.create({
     headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-    },
+    }
 });
 
 // Flag and queue for token refresh
@@ -34,13 +34,38 @@ const processQueue = (error: any, token: string | null = null) => {
     failedQueue = [];
 };
 
+// Internal cache to avoid fetching token repeatedly
+let antiforgeryToken: string | null = null;
+
 // Request interceptor
 restClient.interceptors.request.use(
-    (config) => {
+    async (config) => {
         const token = getStoredToken();
         if (token?.accessToken) {
             config.headers.Authorization = `Bearer ${token.accessToken}`;
         }
+
+        const contentType = config.headers['Content-Type'] || config.headers['content-type'];
+        const isMultipart = contentType?.includes('multipart/form-data');
+
+        if (isMultipart) {
+            if (!antiforgeryToken) {
+                try {
+                    const response = await restClient.get("antiforgery/token", {
+                        withCredentials: true,
+                    });
+                    antiforgeryToken = response.data;
+                } catch (error) {
+                    console.error('Failed to fetch antiforgery token', error);
+                    return Promise.reject(error);
+                }
+            }
+
+            if (antiforgeryToken) {
+                config.headers['X-XSRF-TOKEN'] = antiforgeryToken;
+            }
+        }
+
         return config;
     },
     (error) => Promise.reject(error)

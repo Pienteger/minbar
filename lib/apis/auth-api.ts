@@ -1,69 +1,78 @@
-import { restClient } from "../rest-client";
+import {restClient} from "../rest-client";
+import {DisplayImageType} from "@/types/display-image-type";
+import {ServiceResponse} from "@/blueprints/ServiceResponse";
 
 export interface RegisterData {
-  email: string;
-  password: string;
-  confirmPassword: string;
-  name: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+    name: string;
 }
 
 export interface LoginData {
-  email: string;
-  password: string;
-  twoFactorCode?: string;
-  twoFactorRecoveryCode?: string;
+    email: string;
+    password: string;
+    twoFactorCode?: string;
+    twoFactorRecoveryCode?: string;
 }
 
 export interface TokenResponse {
-  tokenType: string;
-  accessToken: string;
-  expiresIn: number;
-  refreshToken: string;
+    tokenType: string;
+    accessToken: string;
+    expiresIn: number;
+    refreshToken: string;
 }
 
 export interface ForgotPasswordData {
-  email: string;
+    email: string;
 }
 
 export interface ResetPasswordData {
-  email: string;
-  resetCode: string;
-  newPassword: string;
+    email: string;
+    resetCode: string;
+    newPassword: string;
 }
 
 export interface RefreshTokenData {
-  refreshToken: string;
+    refreshToken: string;
+}
+
+export interface UpdateApplicationUserDisplayPictureCommand {
+    DisplayPicture: File;
+    ImageType: DisplayImageType;
 }
 
 export const authApi = {
-  register: (data: RegisterData) =>
-    restClient.post<void>("/Identity/RegisterUser", data),
+    register: (data: RegisterData) =>
+        restClient.post<void>("/Identity/RegisterUser", data),
 
-  login: (data: LoginData) => restClient.post<TokenResponse>("/account/login", data),
+    login: (data: LoginData) => restClient.post<TokenResponse>("/account/login", data),
 
-  logout: () => restClient.post<void>("/Identity/logout", {}),
+    logout: () => restClient.post<void>("/Identity/logout", {}),
 
-  forgotPassword: (data: ForgotPasswordData) =>
-    restClient.post<void>("/account/forgotPassword", data),
+    forgotPassword: (data: ForgotPasswordData) =>
+        restClient.post<void>("/account/forgotPassword", data),
 
-  resetPassword: (data: ResetPasswordData) =>
-    restClient.post<void>("/account/resetPassword", data),
+    resetPassword: (data: ResetPasswordData) =>
+        restClient.post<void>("/account/resetPassword", data),
 
-  refreshToken: (data: RefreshTokenData) =>
-    restClient.post<TokenResponse>("/account/refresh", data),
+    refreshToken: (data: RefreshTokenData) =>
+        restClient.post<TokenResponse>("/account/refresh", data),
 
-  updateProfilePicture: (userId: number, profilePicture: File) => {
-    const formData = new FormData();
-    formData.append("ProfilePicture", profilePicture);
+    updateDisplayPicture: (command: UpdateApplicationUserDisplayPictureCommand) => {
+        const formData = new FormData();
+        formData.append("DisplayPicture", command.DisplayPicture);
+        formData.append("ImageType", command.ImageType);
 
-    return restClient.post<void>(
-      `/Identity/UpdateProfilePicture?ApplicationUserId=${userId}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-  },
+        return restClient.post<ServiceResponse>(
+            `/identity/UpdateApplicationUserDisplayPicture`,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+                withCredentials: true
+            }
+        );
+    },
 };

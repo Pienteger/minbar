@@ -31,6 +31,7 @@ export const mosqueApi = {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
+                withCredentials: true
             }
         );
     },
@@ -45,6 +46,7 @@ export const mosqueApi = {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
+                withCredentials: true
             }
         );
     }

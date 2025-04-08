@@ -8,9 +8,9 @@ import {Card, CardContent} from "@/components/ui/card";
 import {Camera, Upload, X} from "lucide-react";
 import {useAuth} from "@/contexts/auth-context";
 import {Icons} from "@/components/icons";
-import {imageApi, UploadImageRequest} from "@/lib/apis/image-api";
 import {DisplayImageType} from "@/types/display-image-type";
 import {EntityType} from "@/types/entity-type";
+import {authApi, UpdateApplicationUserDisplayPictureCommand} from "@/lib/apis/auth-api";
 
 export function ProfilePictureUpload() {
     const {user, refetchProfile, isLoading} = useAuth();
@@ -43,16 +43,14 @@ export function ProfilePictureUpload() {
 
         try {
             const request = {
-                displayImageType: DisplayImageType.Profile,
-                entityType: EntityType.ApplicationUser,
-                entityId: user?.id || 0,
-                imageFiles: [fileInputRef.current.files[0]],
-            } as UploadImageRequest;
+                ImageType: DisplayImageType.Profile,
+                DisplayPicture: fileInputRef.current.files[0]
+            } as UpdateApplicationUserDisplayPictureCommand;
 
             // await updateProfilePicture(fileInputRef.current.files[0]);
-            const response = await imageApi.uploadPhoto(request);
+            const response = await authApi.updateDisplayPicture(request);
 
-            if (response.status !== 201) {
+            if (!response.data.isSuccess) {
                 throw new Error("Failed to upload image");
             }
 
