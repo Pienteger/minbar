@@ -1,6 +1,6 @@
 "use client";
 
-import {useState} from "react";
+import React, {useState} from "react";
 import {Button} from "@/components/ui/button";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Card, CardContent, CardFooter} from "@/components/ui/card";
@@ -13,24 +13,40 @@ import {
 import {Icons} from "@/components/icons";
 import {RichTextEditor} from "@/components/rich-text-editor";
 import {useAuth} from "@/contexts/auth-context";
+import {Select, SelectItem, SelectTrigger, SelectGroup, SelectContent, SelectLabel, SelectValue} from "../ui/select";
+import {authApi, PublishSocialPostCommand} from "@/lib/apis/auth-api";
+
 
 export function CreatePostButton() {
     const [isOpen, setIsOpen] = useState(false);
     const [postContent, setPostContent] = useState("");
+    const [attachedFiles, setAttachedFiles] = useState<File[]>([])
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [postVisibility, setPostVisibility] = useState("Public");
     const {user} = useAuth()
 
-    const handleSubmit = () => {
-        if (!postContent.trim()) return;
+    const handleSubmit = async () => {
+        if (!postContent.trim() && attachedFiles) return;
 
-        setIsSubmitting(true);
+        const command: PublishSocialPostCommand = {
+            ImageFiles: attachedFiles,
+            Content: postContent,
+            SocialPostVisibility: postVisibility
+        };
 
-        // Simulate post creation
-        setTimeout(() => {
-            setIsSubmitting(false);
+        const axiosResponse = await authApi.publishSocialPost(command);
+        const serviceResponse = axiosResponse.data;
+        if (serviceResponse.isSuccess) {
             setPostContent("");
+            setAttachedFiles([]);
             setIsOpen(false);
-        }, 1000);
+        } else {
+            // Handle error
+            console.error("Error creating post:", serviceResponse.errorMessage);
+
+            // Optionally, show an error message to the user
+            alert("Error creating post: " + serviceResponse.errorMessage);
+        }
     };
 
     return (
@@ -75,46 +91,70 @@ export function CreatePostButton() {
             </Card>
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent className="sm:max-w-md rounded-xl border-primary/20 bg-background/95 backdrop-blur-sm">
+                <DialogContent
+                    className="sm:max-w-md md:max-w-[30vw] rounded-xl border-primary/20 bg-background/95 backdrop-blur-sm">
                     <DialogHeader>
                         <DialogTitle
                             className="text-xl font-bold bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent">
                             Create Post
                         </DialogTitle>
                     </DialogHeader>
-                    <div className="flex items-start space-x-3 pt-4">
-                        <Avatar>
-                            <AvatarImage src="/me.jpg?height=40&width=40" alt="User"/>
-                            <AvatarFallback>U</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                            <div className="font-semibold">Mahmudul Hasan</div>
-
-                            <RichTextEditor
-                                value={postContent}
-                                onChange={setPostContent}
-                                placeholder="What's on your mind?"
-                                minHeight="120px"
-                                maxHeight="300px"
-                            />
-
-                            <div className="mt-4 flex items-center justify-end">
-                                <Button
-                                    onClick={handleSubmit}
-                                    disabled={!postContent.trim() || isSubmitting}
-                                    className="rounded-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600"
-                                >
-                                    {isSubmitting ? (
-                                        <>
-                                            <Icons.spinner className="mr-2 h-4 w-4 animate-spin"/>
-                                            Posting...
-                                        </>
-                                    ) : (
-                                        "Post"
-                                    )}
-                                </Button>
+                    <div className="flex flex-col gap-2 pt-4 md:max-h-[60vh] overflow-auto ">
+                        <div className="flex gap-2">
+                            <Avatar>
+                                <AvatarImage src={user?.profilePictureUrl} alt="User"/>
+                                <AvatarFallback>U</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 flex items-center align-middle justify-between">
+                                <div className="font-semibold text-2xl">{user?.name}</div>
+                                <Select value={postVisibility} onValueChange={(value) => setPostVisibility(value)}>
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Privacy Settings"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Public" className="flex gap-1">
+                                            <div className="flex gap-1">
+                                                <Icons.globe className="mr-2 h-4 w-4"/>
+                                                Public
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="OnlyMe">
+                                            <span className="flex gap-1">
+                                                <Icons.lockIcon className="mr-2 h-4 w-4"/>
+                                            Only Me
+                                            </span>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
+
+
+                        <RichTextEditor
+                            value={postContent}
+                            onChange={setPostContent}
+                            onFilesChange={setAttachedFiles}
+                            placeholder="What's on your mind?"
+                            minHeight="120px"
+                            maxHeight="300px"
+                        />
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-end">
+                        <Button
+                            onClick={handleSubmit}
+                            disabled={!postContent.trim() || isSubmitting}
+                            className="rounded-full bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Icons.spinner className="mr-2 h-4 w-4 animate-spin"/>
+                                    Posting...
+                                </>
+                            ) : (
+                                "Post"
+                            )}
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>
