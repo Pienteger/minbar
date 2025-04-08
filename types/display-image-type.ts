@@ -12,3 +12,10 @@ export enum SocialPostVisibility
     // CustomFriends,
     // AllFriendsExcept
 }
+
+export enum SocialPostType
+{
+    General = "GENERAL",
+    ActiveCoverPhoto = "ACTIVE_COVER_PHOTO",
+    ActiveProfilePicture = "ACTIVE_PROFILE_PICTURE",
+}
