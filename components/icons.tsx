@@ -81,12 +81,14 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronsDown,
-    LockIcon
+    LockIcon,
+    ChevronUp
 } from "lucide-react";
 
 export type Icon = LucideIcon;
 
 export const Icons = {
+  chevronUp: ChevronUp,
   lockIcon: LockIcon,
   alertTriangle: AlertTriangle,
   chevronDown: ChevronDown,

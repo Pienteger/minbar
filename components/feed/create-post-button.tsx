@@ -14,7 +14,7 @@ import {Icons} from "@/components/icons";
 import {RichTextEditor} from "@/components/rich-text-editor";
 import {useAuth} from "@/contexts/auth-context";
 import {Select, SelectItem, SelectTrigger, SelectGroup, SelectContent, SelectLabel, SelectValue} from "../ui/select";
-import {authApi, PublishSocialPostCommand} from "@/lib/apis/auth-api";
+import {feedApi, PublishSocialPostCommand} from "@/lib/apis/feed-api";
 
 
 export function CreatePostButton() {
@@ -34,7 +34,7 @@ export function CreatePostButton() {
             SocialPostVisibility: postVisibility
         };
 
-        const axiosResponse = await authApi.publishSocialPost(command);
+        const axiosResponse = await feedApi.publishSocialPost(command);
         const serviceResponse = axiosResponse.data;
         if (serviceResponse.isSuccess) {
             setPostContent("");

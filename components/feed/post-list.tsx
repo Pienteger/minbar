@@ -13,6 +13,8 @@ import {
     CardHeader,
 } from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
+import {CommentSection} from "./comment-section"
+import type {CommentData} from "./comment-item"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -28,6 +30,7 @@ import {gql, useQuery} from "@apollo/client";
 import {MosqueCardItemQueryResult} from "@/graphql/models/mosques/MosqueCardItemQueryResult";
 import ReactMarkdown from "react-markdown";
 import {SocialPostType} from "@/types/display-image-type";
+import {PhotoGallery} from "./photo-gallery";
 
 const GET_SOCIAL_POSTS_QUERY = gql`
     query SocialPosts(
@@ -52,9 +55,9 @@ const GET_SOCIAL_POSTS_QUERY = gql`
                     id
                     userName
                 }
-                likes
-                comments
-                shares
+                likeCount
+                commentCount
+                shareCount
             }
             pageInfo {
                 hasNextPage
@@ -156,9 +159,10 @@ interface PostNode {
         userName: string;
         id: string;
     };
-    likes: number;
-    comments: number;
-    shares: number;
+    likeCount: number;
+    commentCount: number;
+    shareCount: number;
+    commentData: CommentData[];
 }
 
 
@@ -166,6 +170,10 @@ export function PostList() {
     const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({
         "2": true,
     });
+    const [galleryOpen, setGalleryOpen] = useState(false)
+    const [activePostIndex, setActivePostIndex] = useState(0)
+    const [activeImageIndex, setActiveImageIndex] = useState(0)
+    const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({})
 
     const pageSize = 10;
 
@@ -184,9 +192,22 @@ export function PostList() {
         }));
     };
 
+    const openGallery = (postIndex: number, imageIndex = 0) => {
+        setActivePostIndex(postIndex)
+        setActiveImageIndex(imageIndex)
+        setGalleryOpen(true)
+    }
+
+    const toggleComments = (postId: string) => {
+        setExpandedComments((prev) => ({
+            ...prev,
+            [postId]: !prev[postId],
+        }))
+    }
+
     return (
         <div className="space-y-4">
-            {posts.map((post) => (
+            {posts.map((post, postIndex) => (
                 <Card key={post.id} className="overflow-hidden border-primary/20">
                     <CardHeader className="p-4 pb-0">
                         <div className="flex justify-between items-start">
@@ -268,72 +289,90 @@ export function PostList() {
                         >
                             {post.content}
                         </ReactMarkdown>
-
                         {post.images && post.images.length > 0 && (
                             <div
-                                className={`mt-3 grid gap-2 ${
-                                    post.images.length > 1 ? "grid-cols-2" : "grid-cols-1"
-                                }`}
-                            >
-                                {post.images.map((image, index) => (
+                                className={`mt-3 grid gap-2 ${post.images.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                                {post.images.slice(0, 4).map((image, imageIndex) => (
                                     <div
-                                        key={index}
-                                        className="relative rounded-xl overflow-hidden aspect-video bg-muted"
+                                        key={imageIndex}
+                                        className="relative rounded-xl overflow-hidden aspect-video bg-muted cursor-pointer"
+                                        onClick={() => openGallery(postIndex, imageIndex)}
                                     >
                                         <Image
                                             src={image || "/placeholder.svg"}
-                                            alt={`Post image ${index + 1}`}
+                                            alt={`Post image ${imageIndex + 1}`}
                                             fill
-                                            className="object-cover"
+                                            className="object-cover hover:scale-105 transition-transform duration-300"
                                         />
+                                        {post.images.length > 4 && imageIndex === 3 && (
+                                            <div
+                                                className="absolute inset-0 flex items-center justify-center bg-black/30 text-white font-medium">
+                                                +{post.images.length - 4} more
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
+
                             </div>
                         )}
                     </CardContent>
-                    <CardFooter className="p-4 pt-0 flex justify-between">
-                        <div className="flex space-x-1">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 px-2.5 text-muted-foreground hover:text-foreground"
-                                onClick={() => handleLike(post.id)}
-                            >
-                                {likedPosts[post.id] ? (
-                                    <Icons.heart className="mr-1.5 h-4 w-4 text-red-500"/>
-                                ) : (
-                                    <Icons.heart className="mr-1.5 h-4 w-4"/>
-                                )}
-                                {post.likes + (likedPosts[post.id] ? 1 : 0)}
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 px-2.5 text-muted-foreground hover:text-foreground"
-                            >
-                                <Icons.messageCircle className="mr-1.5 h-4 w-4"/>
-                                {post.comments}
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-9 px-2.5 text-muted-foreground hover:text-foreground"
-                            >
-                                <Icons.repeat className="mr-1.5 h-4 w-4"/>
-                                {post.shares}
+                    <CardFooter className="p-4 pt-0 flex flex-col space-y-4">
+                        <div className="flex justify-between w-full">
+                            <div className="flex space-x-1">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-9 px-2.5 text-muted-foreground hover:text-foreground"
+                                    onClick={() => handleLike(post.id)}
+                                >
+                                    {likedPosts[post.id] ? (
+                                        <Icons.heart className="mr-1.5 h-4 w-4 text-red-500"/>
+                                    ) : (
+                                        <Icons.heart className="mr-1.5 h-4 w-4"/>
+                                    )}
+                                    {post.likeCount + (likedPosts[post.id] ? 1 : 0)}
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-9 px-2.5 text-muted-foreground hover:text-foreground"
+                                    onClick={() => toggleComments(post.id)}
+                                >
+                                    <Icons.messageCircle className="mr-1.5 h-4 w-4"/>
+                                    {post.commentCount}
+                                </Button>
+                                <Button variant="ghost" size="sm"
+                                        className="h-9 px-2.5 text-muted-foreground hover:text-foreground">
+                                    <Icons.repeat className="mr-1.5 h-4 w-4"/>
+                                    {post.shareCount}
+                                </Button>
+                            </div>
+                            <Button variant="ghost" size="sm"
+                                    className="h-9 px-2.5 text-muted-foreground hover:text-foreground">
+                                <Icons.share className="mr-1.5 h-4 w-4"/>
+                                Share
                             </Button>
                         </div>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-9 px-2.5 text-muted-foreground hover:text-foreground"
-                        >
-                            <Icons.share className="mr-1.5 h-4 w-4"/>
-                            Share
-                        </Button>
+
+                        {/* Comments Section */}
+                        {expandedComments[post.id] && (
+                            <div className="w-full border-t border-primary/10 pt-4">
+                                <CommentSection postId={post.id} initialComments={post.commentData as CommentData[]}/>
+                            </div>
+                        )}
                     </CardFooter>
                 </Card>
             ))}
+
+            {/* Photo Gallery */}
+            {galleryOpen && posts[activePostIndex]?.images && (
+                <PhotoGallery
+                    images={posts[activePostIndex].images}
+                    initialIndex={activeImageIndex}
+                    isOpen={galleryOpen}
+                    onClose={() => setGalleryOpen(false)}
+                />
+            )}
         </div>
     );
 }
