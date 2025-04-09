@@ -31,6 +31,7 @@ import {MosqueCardItemQueryResult} from "@/graphql/models/mosques/MosqueCardItem
 import ReactMarkdown from "react-markdown";
 import {SocialPostType} from "@/types/display-image-type";
 import {PhotoGallery} from "./photo-gallery";
+import {feedApi} from "@/lib/apis/feed-api";
 
 const GET_SOCIAL_POSTS_QUERY = gql`
     query SocialPosts(
@@ -185,11 +186,12 @@ export function PostList() {
 
     const posts = (data?.socialPosts?.nodes as PostNode[]) || [];
 
-    const handleLike = (postId: string) => {
+    const handleLike = async (postId: string) => {
         setLikedPosts((prev) => ({
             ...prev,
             [postId]: !prev[postId],
         }));
+        await feedApi.likeASocialPost(postId);
     };
 
     const openGallery = (postIndex: number, imageIndex = 0) => {
@@ -208,6 +210,7 @@ export function PostList() {
     return (
         <div className="space-y-4">
             {posts.map((post, postIndex) => (
+
                 <Card key={post.id} className="overflow-hidden border-primary/20">
                     <CardHeader className="p-4 pb-0">
                         <div className="flex justify-between items-start">
@@ -326,7 +329,13 @@ export function PostList() {
                                     onClick={() => handleLike(post.id)}
                                 >
                                     {likedPosts[post.id] ? (
-                                        <Icons.heart className="mr-1.5 h-4 w-4 text-red-500"/>
+                                        <motion.div
+                                            initial={{scale: 0.8, opacity: 0}}
+                                            animate={{scale: [1.2, 1], opacity: 1}}
+                                            transition={{duration: 0.4, ease: "easeOut"}}
+                                        >
+                                            <Icons.FilledHeart className="mr-1.5 h-4 w-4 text-red-500"/>
+                                        </motion.div>
                                     ) : (
                                         <Icons.heart className="mr-1.5 h-4 w-4"/>
                                     )}

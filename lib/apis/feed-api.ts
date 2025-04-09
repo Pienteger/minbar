@@ -9,6 +9,14 @@ export interface PublishSocialPostCommand {
 
 
 export const feedApi = {
+    likeASocialPost: (postId: string) => {
+
+        const command = {SocialPostId: postId};
+
+        return restClient.post<ServiceResponse>(`/feed/AddLike`, command, {
+            withCredentials: true
+        })
+    },
     publishSocialPost: (command: PublishSocialPostCommand) => {
 
         if (!command.SocialPostVisibility) {
