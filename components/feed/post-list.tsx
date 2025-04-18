@@ -59,6 +59,7 @@ const GET_SOCIAL_POSTS_QUERY = gql`
                 likeCount
                 commentCount
                 shareCount
+                socialPostComments
             }
             pageInfo {
                 hasNextPage
@@ -69,79 +70,6 @@ const GET_SOCIAL_POSTS_QUERY = gql`
         }
     }
 `;
-// Mock data for posts
-// const posts = [
-//   {
-//     id: "1",
-//     user: {
-//       name: "Ashiqur Rahman Alif",
-//       username: "@aratheunseen",
-//       avatar: "/alif.jpg?height=40&width=40",
-//       mosqueMembership: {
-//         id: "mosque1",
-//         name: "Gulshan Central Mosque",
-//         type: "home",
-//         role: "member",
-//       },
-//     },
-//     content:
-//       "Longest Railway Bridge in Bangladesh. 🌉 #Bangladesh #JamunaBridge",
-//     images: ["/jamuna.jpg?height=400&width=600"],
-//     timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-//     likes: 24,
-//     comments: 5,
-//     shares: 2,
-//     liked: false,
-//   },
-//   {
-//     id: "2",
-//     user: {
-//       id: "user2",
-//       name: "Arfizur Rahman",
-//       username: "@arfiz",
-//       avatar: "/arfiz.jpg?height=40&width=40",
-//       mosqueMembership: {
-//         id: "mosque2",
-//         name: "Banani Central Mosque",
-//         type: "office",
-//         role: "khadem",
-//       },
-//     },
-//     content:
-//       "Beautiful sunset view from my window today. Alhamdulillah for these moments of peace and reflection. 🌅 #Sunset #Alhamdulillah",
-//     images: [
-//       "https://cdn.pixabay.com/photo/2023/10/21/11/46/sunset-8331285_960_720.jpg",
-//       "https://cdn.pixabay.com/photo/2020/12/12/16/48/arch-5826002_1280.jpg",
-//     ],
-//     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3 hours ago
-//     likes: 56,
-//     comments: 12,
-//     shares: 4,
-//     liked: true,
-//   },
-//   {
-//     id: "3",
-//     user: {
-//       id: "user3",
-//       name: "Ahmed Khan",
-//       username: "@ahmedk",
-//       avatar: "/placeholder.svg?height=40&width=40",
-//       mosqueMembership: {
-//         id: "mosque3",
-//         name: "Mirpur DOHS Central Mosque",
-//         type: "roaming",
-//         role: "imam",
-//       },
-//     },
-//     content:
-//       "Attended an amazing lecture at the mosque today about the importance of kindness in Islam. The speaker emphasized how small acts of kindness can have a big impact. Let's all try to be a bit kinder today! #Islam #Kindness",
-//     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-//     likes: 89,
-//     comments: 15,
-//     shares: 10,
-//     liked: false,
-//   },
-// ];
 
 interface PostNode {
     content: string;
@@ -163,7 +91,7 @@ interface PostNode {
     likeCount: number;
     commentCount: number;
     shareCount: number;
-    commentData: CommentData[];
+    socialPostComments: CommentData[];
 }
 
 
