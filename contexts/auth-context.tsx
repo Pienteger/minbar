@@ -37,7 +37,9 @@ interface AuthContextType {
     logout: () => Promise<void>;
     forgotPassword: (data: ForgotPasswordData) => Promise<void>;
     resetPassword: (data: ResetPasswordData) => Promise<void>;
+
     refetchProfile(): Promise<any>;
+
     profileLoading: boolean;
 }
 
@@ -98,7 +100,11 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
         };
 
 
-        checkAuth();
+        checkAuth().then(r => {
+            if (isAuthenticated && user) {
+                router.push("/feed");
+            }
+        });
     }, []);
 
     const handleAuthResponse = (response: TokenResponse) => {
@@ -214,32 +220,6 @@ export function AuthProvider({children}: { children: React.ReactNode }) {
             toast({
                 title: "Password reset failed",
                 description: "Invalid or expired reset code",
-                variant: "destructive",
-            });
-            throw error;
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const updateProfilePicture = async (file: File) => {
-        try {
-            setIsLoading(true);
-            if (!user) throw new Error("User not authenticated");
-            await authApi.updateProfilePicture(user.id, file);
-            setUser({
-                ...user,
-                profilePictureUrl: URL.createObjectURL(file),
-            });
-            toast({
-                title: "Profile picture updated",
-                description: "Your profile picture has been updated successfully",
-            });
-        } catch (error) {
-            console.error("Update profile picture error:", error);
-            toast({
-                title: "Update failed",
-                description: "Unable to update profile picture",
                 variant: "destructive",
             });
             throw error;

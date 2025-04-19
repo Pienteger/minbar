@@ -1,31 +1,23 @@
 "use client"
 import * as z from "zod"
 import {zodResolver} from "@hookform/resolvers/zod"
-import {useEffect, useState} from "react"
+import {useState} from "react"
 import Link from "next/link"
-import {useRouter} from "next/navigation"
 import {Button} from "@/components/ui/button"
 import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
-import {Separator} from "@/components/ui/separator"
+import { Controller } from "react-hook-form";
 import {Checkbox} from "@/components/ui/checkbox"
 import {Icons} from "@/components/icons"
 import {useForm} from "react-hook-form"
 import {useAuth} from "@/contexts/auth-context"
+import {RadioGroup, RadioGroupItem} from "@/components/ui/radio-group";
+import {Eye, EyeOff, Radio} from "lucide-react";
 
 export function SignUpForm() {
-    const router = useRouter()
-    const {register: registerUser, isLoading, isAuthenticated} = useAuth()
+    const {register: registerUser, isLoading} = useAuth()
     const [error, setError] = useState("")
-
-
-    useEffect(() => {
-        if (!isLoading && isAuthenticated) {
-            router.replace("/feed")
-        }
-    }, [isAuthenticated, isLoading, router])
-
-    if (isLoading || isAuthenticated) return null
+    const [showPassword, setShowPassword] = useState(false);
 
     const registerSchema = z
         .object({
@@ -33,7 +25,11 @@ export function SignUpForm() {
             email: z.string().email("Invalid email address"),
             password: z.string().min(8, "Password must be at least 8 characters"),
             confirmPassword: z.string().min(1, "Please confirm your password"),
-            terms: z.boolean().refine((val) => val === true, {
+            gender: z.enum(["Male", "Female"], {
+                required_error: "Gender is required",
+                invalid_type_error: "Gender must be either Male or Female",
+            }),
+            terms: z.boolean().refine((val) => val, {
                 message: "You must accept the terms and conditions",
             }),
         })
@@ -47,6 +43,9 @@ export function SignUpForm() {
     const {
         register,
         handleSubmit,
+        setValue,
+        watch,
+        control,
         formState: {errors},
     } = useForm<RegisterForm>({
         resolver: zodResolver(registerSchema),
@@ -55,9 +54,12 @@ export function SignUpForm() {
             email: "",
             password: "",
             confirmPassword: "",
+            gender: "Male",
             terms: false,
         },
-    })
+    });
+
+    const gender = watch("gender");
 
     const onSubmit = async (data: RegisterForm) => {
         try {
@@ -67,6 +69,7 @@ export function SignUpForm() {
                 email: data.email,
                 password: data.password,
                 confirmPassword: data.confirmPassword,
+                gender: "Male",
             })
         } catch (error) {
             setError(error instanceof Error ? error.message : "Registration failed")
@@ -98,36 +101,100 @@ export function SignUpForm() {
                         {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
                     </div>
                     <div className="grid gap-2">
+                        <Label htmlFor="gender">Gender</Label>
+                        <RadioGroup
+                            value={gender}
+                            onValueChange={(val) => setValue("gender", val as "Male" | "Female", { shouldValidate: true })}
+                                    className="flex justify-start items-center gap-6"
+                        >
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Male" id="r1"/>
+                                <Label htmlFor="r1">Male</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="Female" id="r2"/>
+                                <Label htmlFor="r2">Female</Label>
+                            </div>
+                        </RadioGroup>
+                        {errors.gender && (
+                            <p className="text-sm text-red-500">{errors.gender.message}</p>
+                        )}
+                    </div>
+                    <div className="grid gap-2">
                         <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            placeholder="••••••••"
-                            type="password"
-                            autoCapitalize="none"
-                            autoComplete="new-password"
-                            {...register("password")}
-                            disabled={isLoading}
-                            required
-                        />
+                        <div className="relative">
+                            <Input
+                                id="password"
+                                placeholder="••••••••"
+                                type={showPassword ? "text" : "password"}
+                                autoCapitalize="none"
+                                autoComplete="new-password"
+                                {...register("password")}
+                                disabled={isLoading}
+                                required
+                            />
+
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="h-4 w-4"/>
+                                ) : (
+                                    <Eye className="h-4 w-4"/>
+                                )}
+                                <span className="sr-only">Toggle password visibility</span>
+                            </Button>
+                        </div>
                         {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="confirmPassword">Confirm Password</Label>
-                        <Input
-                            id="confirmPassword"
-                            placeholder="••••••••"
-                            type="password"
-                            autoCapitalize="none"
-                            autoComplete="new-password"
-                            {...register("confirmPassword")}
-                            disabled={isLoading}
-                            required
-                        />
+                        <div className="relative">
+                            <Input
+                                id="confirmPassword"
+                                placeholder="••••••••"
+                                type={showPassword ? "text" : "password"}
+                                autoCapitalize="none"
+                                autoComplete="new-password"
+                                {...register("confirmPassword")}
+                                disabled={isLoading}
+                                required
+                            />
+
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="h-4 w-4"/>
+                                ) : (
+                                    <Eye className="h-4 w-4"/>
+                                )}
+                                <span className="sr-only">Toggle password visibility</span>
+                            </Button>
+                        </div>
                         {errors.confirmPassword &&
                             <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
                     </div>
                     <div className="flex items-center space-x-2">
-                        <Checkbox id="terms" {...register("terms")} />
+                        <Controller
+                            name="terms"
+                            control={control}
+                            render={({ field }) => (
+                                <Checkbox
+                                    id="terms"
+                                    checked={field.value}
+                                    onCheckedChange={(checked) => field.onChange(!!checked)}
+                                />
+                            )}
+                        />
                         <label
                             htmlFor="terms"
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -143,24 +210,6 @@ export function SignUpForm() {
                     </Button>
                 </div>
             </form>
-            <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                    <Separator className="w-full"/>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-                </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" type="button" disabled={isLoading}>
-                    <Icons.google className="mr-2 h-4 w-4"/>
-                    Google
-                </Button>
-                <Button variant="outline" type="button" disabled={isLoading}>
-                    <Icons.apple className="mr-2 h-4 w-4"/>
-                    Apple
-                </Button>
-            </div>
             <div className="text-center text-sm">
                 Already have an account?{" "}
                 <Link href="/auth/sign-in" className="font-medium text-primary underline-offset-4 hover:underline">
