@@ -26,7 +26,7 @@ import {formatDistanceToNow} from "@/lib/date-utils";
 import {motion} from "framer-motion";
 import Link from "next/link";
 import {MosqueMembershipBadge} from "@/components/mosque/mosque-membership-badge";
-import {gql, useQuery} from "@apollo/client";
+import {gql, useLazyQuery, useQuery} from "@apollo/client";
 import {MosqueCardItemQueryResult} from "@/graphql/models/mosques/MosqueCardItemQueryResult";
 import ReactMarkdown from "react-markdown";
 import {SocialPostType} from "@/types/display-image-type";
@@ -59,7 +59,25 @@ const GET_SOCIAL_POSTS_QUERY = gql`
                 likeCount
                 commentCount
                 shareCount
-                socialPostComments
+                socialPostComments(first: 2) {
+                    nodes {
+                        id
+                        content
+                        author {
+                            id
+                            displayImages(types: PROFILE) {
+                                displayImageType
+                                imageUrl
+                            }
+                            name
+                        }
+                        createdAt
+                    }
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
+                }
             }
             pageInfo {
                 hasNextPage
@@ -70,6 +88,58 @@ const GET_SOCIAL_POSTS_QUERY = gql`
         }
     }
 `;
+
+const GET_MORE_COMMENTS_QUERY = gql`
+    query MoreComments($postId: String!, $after: String) {
+        socialPost(id: $postId) {
+            comments(first: 5, after: $after) {
+                nodes {
+                    id
+                    content
+                    createdAt
+                }
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
+            }
+        }
+    }
+`;
+
+const useLoadMoreComments = (postId: string, existingComments: CommentData[], endCursor: string | null) => {
+    const [comments, setComments] = useState(existingComments);
+    const [hasMore, setHasMore] = useState(true);
+    const [cursor, setCursor] = useState(endCursor);
+
+    const [fetchMoreComments, { loading }] = useLazyQuery(GET_MORE_COMMENTS_QUERY);
+
+    const loadMore = async () => {
+        if (!hasMore || !postId) return;
+
+        const { data } = await fetchMoreComments({
+            variables: {
+                postId,
+                after: cursor,
+            },
+        });
+
+        const newComments = data?.socialPost?.comments?.nodes ?? [];
+        const pageInfo = data?.socialPost?.comments?.pageInfo;
+
+        setComments((prev) => [...prev, ...newComments]);
+        setCursor(pageInfo?.endCursor ?? null);
+        setHasMore(pageInfo?.hasNextPage ?? false);
+    };
+
+    return {
+        comments,
+        loadMore,
+        loading,
+        hasMore,
+    };
+};
+
 
 interface PostNode {
     content: string;
@@ -91,7 +161,13 @@ interface PostNode {
     likeCount: number;
     commentCount: number;
     shareCount: number;
-    socialPostComments: CommentData[];
+    socialPostComments: {
+        nodes: CommentData[];
+        pageInfo: {
+            hasNextPage: boolean;
+            endCursor: string | null;
+        };
+    };
 }
 
 
@@ -113,6 +189,31 @@ export function PostList() {
     });
 
     const posts = (data?.socialPosts?.nodes as PostNode[]) || [];
+    const postPaginationInfo = data?.socialPosts?.pageInfo;
+
+    const loadMorePosts = async () => {
+        if (!postPaginationInfo?.hasNextPage) return;
+
+        await fetchMore({
+            variables: {
+                after: postPaginationInfo.endCursor,
+            },
+            updateQuery: (prev, { fetchMoreResult }) => {
+                if (!fetchMoreResult) return prev;
+
+                return {
+                    socialPosts: {
+                        ...fetchMoreResult.socialPosts,
+                        nodes: [
+                            ...prev.socialPosts.nodes,
+                            ...fetchMoreResult.socialPosts.nodes,
+                        ],
+                    },
+                };
+            },
+        });
+    };
+
 
     const handleLike = async (postId: string) => {
         setLikedPosts((prev) => ({
@@ -144,7 +245,7 @@ export function PostList() {
                         <div className="flex justify-between items-start">
                             <div className="flex items-start space-x-3">
                                 <Avatar>
-                                    <AvatarImage src={post.applicationUser.displayImages[0].imageUrl}
+                                    <AvatarImage src={post.applicationUser.displayImages[0]?.imageUrl}
                                                  alt={post.applicationUser.name}/>
                                     <AvatarFallback>{post.applicationUser.name[0]}</AvatarFallback>
                                 </Avatar>
@@ -294,7 +395,7 @@ export function PostList() {
                         {/* Comments Section */}
                         {expandedComments[post.id] && (
                             <div className="w-full border-t border-primary/10 pt-4">
-                                <CommentSection postId={post.id} initialComments={post.commentData as CommentData[]}/>
+                                <CommentSection postId={post.id} initialComments={post.socialPostComments.nodes as CommentData[]}/>
                             </div>
                         )}
                     </CardFooter>

@@ -10,6 +10,8 @@ import {formatDistanceToNow} from "@/lib/date-utils"
 import {cn} from "@/lib/utils"
 import Link from "next/link"
 import {CommentForm} from "./comment-form"
+import {DisplayImageType} from "@/types/display-image-type";
+import {humanize} from "@/lib/humanize";
 
 export interface CommentData {
     id: string
@@ -17,10 +19,13 @@ export interface CommentData {
     author: {
         id: string
         name: string
-        username: string
-        avatar: string
+        userName: string
+        displayImages: {
+            displayImageType: DisplayImageType,
+            imageUrl: string
+        }[]
     }
-    timestamp: Date
+    createdAt: Date
     likes: number
     isLiked: boolean
     replies?: CommentData[]
@@ -79,19 +84,19 @@ export function CommentItem({
         <div className={cn("group", level > 0 && "ml-6 mt-2")}>
             <div className="flex space-x-3">
                 <Avatar className="h-8 w-8">
-                    <AvatarImage src={comment.author.avatar} alt={comment.author.name}/>
+                    <AvatarImage src={comment.author.displayImages[0]?.imageUrl} alt={comment.author.name}/>
                     <AvatarFallback>{comment.author.name[0]}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                     <div className="bg-muted/50 rounded-xl px-3 py-2">
                         <div className="flex items-center justify-between">
                             <div>
-                                <Link href={`/profile/${comment.author.username}`}
+                                <Link href={`/profile/${comment.author.id}`}
                                       className="font-medium text-sm hover:underline">
                                     {comment.author.name}
                                 </Link>
                                 <span
-                                    className="text-xs text-muted-foreground ml-2">{formatDistanceToNow(comment.timestamp)}</span>
+                                    className="text-xs text-muted-foreground ml-2">{humanize(comment.createdAt)}</span>
                                 {comment.isEdited &&
                                     <span className="text-xs text-muted-foreground ml-1">(edited)</span>}
                             </div>

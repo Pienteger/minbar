@@ -7,6 +7,12 @@ export interface PublishSocialPostCommand {
     SocialPostVisibility: string,
 }
 
+export interface AddSocialPostCommentCommand{
+    Content: string,
+    ParentCommentId?: string | null,
+    SocialPostId: string,
+}
+
 
 export const feedApi = {
     likeASocialPost: (postId: string) => {
@@ -14,6 +20,11 @@ export const feedApi = {
         const command = {SocialPostId: postId};
 
         return restClient.post<ServiceResponse>(`/feed/AddLike`, command, {
+            withCredentials: true
+        })
+    },
+    commentOnSocialPost: (command: AddSocialPostCommentCommand) => {
+        return restClient.post<ServiceResponse<string>>(`/feed/AddComment`, command, {
             withCredentials: true
         })
     },

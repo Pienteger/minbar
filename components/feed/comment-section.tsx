@@ -6,6 +6,8 @@ import {Icons} from "@/components/icons"
 import {CommentForm} from "./comment-form"
 import {CommentItem, type CommentData} from "./comment-item"
 import {useAuth} from "@/contexts/auth-context"
+import {feedApi} from "@/lib/apis/feed-api";
+import {toast} from "@/components/ui/use-toast";
 
 interface CommentSectionProps {
     postId: string
@@ -22,23 +24,39 @@ export function CommentSection({postId, initialComments = []}: CommentSectionPro
 
     const handleAddComment = async (content: string) => {
         // In a real app, this would be an API call
-        const newComment: CommentData = {
-            id: `comment-${Date.now()}`,
-            content,
-            author: {
-                id: currentUserId,
-                name: user?.name || "Current User",
-                username: user?.name?.toLowerCase().replace(/\s+/g, "") || "currentuser",
-                avatar: user?.profilePictureUrl || "/placeholder.svg?height=40&width=40",
-            },
-            timestamp: new Date(),
-            likes: 0,
-            isLiked: false,
-            replies: [],
-        }
 
-        setComments([newComment, ...comments])
-        return Promise.resolve()
+        var serviceResponse = await feedApi.commentOnSocialPost({
+            ParentCommentId: null,
+            Content: content,
+            SocialPostId: postId
+        })
+
+        if (serviceResponse.data.isSuccess && serviceResponse.data.data) {
+            const newCommentId = serviceResponse.data.data;
+            const newComment: CommentData = {
+                id: newCommentId,
+                content,
+                author: {
+                    id: currentUserId,
+                    name: user?.name || "Current User",
+                    username: user?.name?.toLowerCase().replace(/\s+/g, "") || "currentuser",
+                    avatar: user?.profilePictureUrl || "/placeholder.svg?height=40&width=40",
+                },
+                timestamp: new Date(),
+                likes: 0,
+                isLiked: false,
+                replies: [],
+            }
+            setComments([newComment, ...comments]);
+        } else {
+            console.error("Error adding comment:", serviceResponse.data.errorMessage);
+            // Handle error (e.g., show a toast notification)
+            toast({
+                title: "Error adding comment",
+                description: serviceResponse.data.errorMessage,
+                variant: "destructive",
+            });
+        }
     }
 
     const handleLikeComment = (commentId: string) => {

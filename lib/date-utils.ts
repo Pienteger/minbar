@@ -1,5 +1,5 @@
 export function formatDistanceToNow(date: Date): string {
-  const now = new Date()
+  const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
   if (diffInSeconds < 60) {

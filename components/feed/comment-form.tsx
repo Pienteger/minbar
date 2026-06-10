@@ -52,7 +52,7 @@ export function CommentForm({
         <form onSubmit={handleSubmit} className="flex space-x-2">
             <Avatar className="h-8 w-8">
                 <AvatarImage
-                    src={user?.profilePictureUrl || "/placeholder.svg?height=40&width=40"}
+                    src={user?.profilePictureUrl}
                     alt={user?.name || "User"}
                 />
                 <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
